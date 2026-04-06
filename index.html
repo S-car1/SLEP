@@ -559,6 +559,7 @@ function renderStandardsCharts(school) {
 }
 
 // ─── GENERACIÓN DE PDF ─────────────────────────────────────────────
+// ─── GENERACIÓN DE PDF COMPACTO (1 PÁGINA) ─────────────────────────
 async function downloadPDF() {
   if (!currentSchool) return;
   const btn = document.getElementById('btn-download-pdf');
@@ -573,7 +574,7 @@ async function downloadPDF() {
   const navy = [15, 38, 69];
   const slate = [100, 116, 139];
 
-  // Título sin emojis
+  // --- CABECERA ---
   pdf.setFont('helvetica', 'bold');
   pdf.setFontSize(16);
   pdf.setTextColor(...navy);
@@ -589,49 +590,131 @@ async function downloadPDF() {
   pdf.setTextColor(...slate);
   pdf.text(`RBD: ${currentSchool.rbd} | SLEP ${currentSchool.NOMBRE_SLEP}`, 15, yPos);
   
-  yPos += 15;
+  yPos += 12;
 
-  // Insertar cada gráfico registrado
+  // Filtrar y agrupar gráficos
   const chartKeys = Object.keys(chartsRegistry);
-  for (let i = 0; i < chartKeys.length; i++) {
-    const key = chartKeys[i];
-    const chart = chartsRegistry[key];
-    const canvas = chart.canvas;
-    
-    // Si la imagen no cabe, crear nueva página
-    if (yPos > 230) {
-      pdf.addPage();
-      yPos = 20;
-    }
+  const evoKeys = chartKeys.filter(k => k.startsWith('evo_'));
+  const stdKeys = chartKeys.filter(k => k.startsWith('std_'));
 
-    // Títulos de gráficos limpios (SIN EMOJIS)
-    pdf.setFont('helvetica', 'bold');
+  // --- SECCIÓN EVOLUCIÓN HISTÓRICA (Grid 2 Columnas) ---
+  if (evoKeys.length > 0) {
     pdf.setFontSize(11);
+    pdf.setFont('helvetica', 'bold');
     pdf.setTextColor(...navy);
+    pdf.text('Evolución Histórica', 15, yPos);
+    
+    yPos += 6;
+    // Leyenda manual para el PDF
+    pdf.setFillColor(37, 99, 235); // Azul
+    pdf.rect(15, yPos, 3, 3, 'F');
+    pdf.setFontSize(8); pdf.setFont('helvetica', 'normal'); pdf.setTextColor(...slate);
+    pdf.text('Lenguaje', 20, yPos + 2.5);
+    
+    pdf.setFillColor(124, 58, 237); // Morado
+    pdf.rect(40, yPos, 3, 3, 'F');
+    pdf.text('Matemática', 45, yPos + 2.5);
+    yPos += 6;
 
-    if (key.startsWith('evo_')) {
+    const colW = 85; // Ancho de columna
+    const gap = 10;
+    let startY = yPos;
+    let maxRowH = 0;
+
+    for (let i = 0; i < evoKeys.length; i++) {
+      const col = i % 2;
+      
+      // Salto de fila
+      if (col === 0 && i > 0) {
+        startY += maxRowH + 8;
+        maxRowH = 0;
+      }
+
+      const key = evoKeys[i];
+      const canvas = chartsRegistry[key].canvas;
+      const x = 15 + col * (colW + gap);
+
+      // Título del gráfico
       const lvl = key.split('_')[1].toUpperCase();
       const levelMap = {'4B':'4° Básico', '6B':'6° Básico', '8B':'8° Básico', '2M':'2° Medio'};
-      pdf.text(`Evolución ${levelMap[lvl] || lvl}`, 15, yPos);
-    } else if (key.startsWith('std_')) {
-      const parts = key.split('_');
-      const lvl = parts[1] === '4B' ? '4° Básico' : (parts[1] === '8B' ? '8° Básico' : '2° Medio');
-      const sub = parts[2] === 'LEN' ? 'Lenguaje' : 'Matemática';
-      pdf.text(`Estándares 2025: ${lvl} ${sub}`, 15, yPos);
+      pdf.setFontSize(9);
+      pdf.setFont('helvetica', 'bold');
+      pdf.setTextColor(...navy);
+      pdf.text(`${levelMap[lvl] || lvl}`, x, startY);
+
+      // Imagen del gráfico
+      const imgData = canvas.toDataURL('image/png', 1.0);
+      const imgH = (canvas.height * colW) / canvas.width;
+      pdf.addImage(imgData, 'PNG', x, startY + 2, colW, imgH);
+
+      if (imgH + 6 > maxRowH) maxRowH = imgH + 6;
     }
-
-    yPos += 5;
-
-    // Convertir canvas a imagen
-    const imgData = canvas.toDataURL('image/png', 1.0);
-    const imgWidth = 180;
-    const imgHeight = (canvas.height * imgWidth) / canvas.width;
-    
-    pdf.addImage(imgData, 'PNG', 15, yPos, imgWidth, imgHeight);
-    yPos += imgHeight + 15;
+    yPos = startY + maxRowH + 12;
   }
 
-  // Pie de página
+  // --- SECCIÓN ESTÁNDARES (Grid 3 Columnas) ---
+  if (stdKeys.length > 0) {
+    // Evitar corte de página en el medio si es necesario (A4 mide 297mm de alto)
+    if (yPos > 230) { pdf.addPage(); yPos = 20; }
+
+    pdf.setFontSize(11);
+    pdf.setFont('helvetica', 'bold');
+    pdf.setTextColor(...navy);
+    pdf.text('Estándares de Aprendizaje (2025)', 15, yPos);
+    
+    yPos += 6;
+    // Leyenda manual para Estándares
+    pdf.setFillColor(39, 174, 96); // Verde
+    pdf.rect(15, yPos, 3, 3, 'F');
+    pdf.setFontSize(8); pdf.setFont('helvetica', 'normal'); pdf.setTextColor(...slate);
+    pdf.text('Adecuado', 20, yPos + 2.5);
+
+    pdf.setFillColor(243, 156, 18); // Amarillo
+    pdf.rect(40, yPos, 3, 3, 'F');
+    pdf.text('Elemental', 45, yPos + 2.5);
+
+    pdf.setFillColor(231, 76, 60); // Rojo
+    pdf.rect(65, yPos, 3, 3, 'F');
+    pdf.text('Insuficiente', 70, yPos + 2.5);
+    yPos += 6;
+
+    const colW = 56; // Ancho de columna más ajustado para que entren 3
+    const gap = 6;
+    let startY = yPos;
+    let maxRowH = 0;
+
+    for (let i = 0; i < stdKeys.length; i++) {
+      const col = i % 3;
+      
+      // Salto de fila
+      if (col === 0 && i > 0) {
+        startY += maxRowH + 8;
+        maxRowH = 0;
+      }
+
+      const key = stdKeys[i];
+      const canvas = chartsRegistry[key].canvas;
+      const x = 15 + col * (colW + gap);
+
+      // Título del gráfico
+      const parts = key.split('_');
+      const lvl = parts[1] === '4B' ? '4° Básico' : (parts[1] === '8B' ? '8° Básico' : '2° Medio');
+      const sub = parts[2] === 'LEN' ? 'Leng.' : 'Mat.';
+      pdf.setFontSize(9);
+      pdf.setFont('helvetica', 'bold');
+      pdf.setTextColor(...navy);
+      pdf.text(`${lvl} ${sub}`, x, startY);
+
+      // Imagen del gráfico
+      const imgData = canvas.toDataURL('image/png', 1.0);
+      const imgH = (canvas.height * colW) / canvas.width;
+      pdf.addImage(imgData, 'PNG', x, startY + 2, colW, imgH);
+
+      if (imgH + 6 > maxRowH) maxRowH = imgH + 6;
+    }
+  }
+
+  // --- PIE DE PÁGINA ---
   const pageCount = pdf.internal.getNumberOfPages();
   for (let i = 1; i <= pageCount; i++) {
     pdf.setPage(i);
