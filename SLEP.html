@@ -1,0 +1,731 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SIMCE 2025 — SLEP Del Pino</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Source+Serif+4:ital,wght@0,300;0,400;0,600;0,700;1,400&family=DM+Sans:wght@300;400;500;600&display=swap');
+
+  :root {
+    --navy: #0f2645;
+    --teal: #1a7a6e;
+    --gold: #c8922a;
+    --red: #c0392b;
+    --slate: #4a5568;
+    --light: #f7f8fc;
+    --border: #e2e8f0;
+    --adecuado: #27ae60;
+    --elemental: #f39c12;
+    --insuficiente: #e74c3c;
+    --len-color: #2563eb;
+    --mat-color: #7c3aed;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--light);
+    color: #1a202c;
+    min-height: 100vh;
+  }
+
+  /* ─── HEADER ─── */
+  header {
+    background: var(--navy);
+    color: white;
+    padding: 18px 32px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.25);
+  }
+  .header-brand { display: flex; align-items: center; gap: 14px; }
+  .header-logo {
+    width: 46px; height: 46px; background: var(--teal);
+    border-radius: 10px; display: flex; align-items: center;
+    justify-content: center; font-size: 22px;
+  }
+  .header-title { font-family: 'Source Serif 4', serif; }
+  .header-title h1 { font-size: 1.25rem; font-weight: 700; letter-spacing: -0.02em; }
+  .header-title p { font-size: 0.75rem; color: #94a3b8; margin-top: 1px; }
+  .header-badge {
+    background: var(--gold); color: white; padding: 4px 12px;
+    border-radius: 20px; font-size: 0.72rem; font-weight: 600; letter-spacing: 0.05em;
+  }
+
+  /* ─── SEARCH BAR ─── */
+  .search-section {
+    background: white;
+    border-bottom: 1px solid var(--border);
+    padding: 16px 32px;
+    display: flex;
+    gap: 12px;
+    align-items: center;
+  }
+  .search-wrapper {
+    position: relative; flex: 1; max-width: 520px;
+  }
+  .search-wrapper input {
+    width: 100%; padding: 10px 16px 10px 42px;
+    border: 2px solid var(--border); border-radius: 10px;
+    font-family: 'DM Sans', sans-serif; font-size: 0.95rem;
+    outline: none; transition: border-color 0.2s;
+    background: var(--light);
+  }
+  .search-wrapper input:focus { border-color: var(--teal); background: white; }
+  .search-icon {
+    position: absolute; left: 14px; top: 50%; transform: translateY(-50%);
+    color: var(--slate); font-size: 15px; pointer-events: none;
+  }
+  #search-results {
+    position: absolute; top: calc(100% + 4px); left: 0; right: 0;
+    background: white; border: 1px solid var(--border); border-radius: 10px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.12); z-index: 200;
+    max-height: 280px; overflow-y: auto;
+  }
+  .result-item {
+    padding: 10px 16px; cursor: pointer; display: flex;
+    justify-content: space-between; align-items: center;
+    border-bottom: 1px solid var(--border); transition: background 0.15s;
+  }
+  .result-item:last-child { border-bottom: none; }
+  .result-item:hover { background: #f0fdf9; }
+  .result-name { font-size: 0.85rem; font-weight: 500; }
+  .result-meta { font-size: 0.75rem; color: var(--slate); }
+  .btn-pdf {
+    background: var(--navy); color: white; border: none;
+    padding: 10px 20px; border-radius: 10px; font-family: 'DM Sans', sans-serif;
+    font-size: 0.85rem; font-weight: 600; cursor: pointer;
+    display: flex; align-items: center; gap: 8px;
+    transition: background 0.2s; white-space: nowrap;
+  }
+  .btn-pdf:hover { background: var(--teal); }
+  .btn-pdf:disabled { opacity: 0.5; cursor: not-allowed; }
+
+  /* ─── WELCOME SCREEN ─── */
+  #welcome {
+    display: flex; flex-direction: column; align-items: center;
+    justify-content: center; min-height: calc(100vh - 120px);
+    padding: 40px;
+  }
+  .welcome-card {
+    text-align: center; max-width: 560px;
+  }
+  .welcome-icon { font-size: 64px; margin-bottom: 20px; }
+  .welcome-card h2 {
+    font-family: 'Source Serif 4', serif;
+    font-size: 2rem; color: var(--navy); margin-bottom: 12px;
+  }
+  .welcome-card p { color: var(--slate); line-height: 1.7; font-size: 1rem; }
+  .welcome-stats {
+    display: flex; gap: 24px; margin-top: 28px; justify-content: center;
+  }
+  .wstat {
+    background: white; border: 1px solid var(--border);
+    padding: 16px 24px; border-radius: 12px; text-align: center;
+  }
+  .wstat-n { font-size: 2rem; font-weight: 700; color: var(--teal); }
+  .wstat-l { font-size: 0.78rem; color: var(--slate); margin-top: 2px; }
+
+  /* ─── DASHBOARD ─── */
+  #dashboard { display: none; padding: 28px 32px; }
+
+  .estab-header {
+    background: white; border: 1px solid var(--border); border-radius: 14px;
+    padding: 20px 24px; margin-bottom: 20px;
+    display: flex; align-items: flex-start; justify-content: space-between;
+  }
+  .estab-name {
+    font-family: 'Source Serif 4', serif;
+    font-size: 1.45rem; font-weight: 700; color: var(--navy);
+    line-height: 1.2; max-width: 600px;
+  }
+  .estab-meta { margin-top: 6px; display: flex; gap: 14px; flex-wrap: wrap; }
+  .estab-badge {
+    background: #e8f5e9; color: #2e7d32;
+    padding: 3px 10px; border-radius: 6px;
+    font-size: 0.75rem; font-weight: 600;
+  }
+  .estab-badge.rbd { background: #e3f2fd; color: #1565c0; }
+
+  /* ─── KPI GRID ─── */
+  .kpi-grid {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 12px;
+    margin-bottom: 20px;
+  }
+  .kpi-card {
+    background: white; border: 1px solid var(--border);
+    border-radius: 12px; padding: 14px 16px;
+    border-top: 3px solid var(--teal);
+  }
+  .kpi-label { font-size: 0.7rem; color: var(--slate); font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; }
+  .kpi-value { font-size: 1.8rem; font-weight: 700; color: var(--navy); line-height: 1.1; margin: 4px 0; }
+  .kpi-diff { font-size: 0.78rem; font-weight: 600; }
+  .kpi-diff.pos { color: var(--adecuado); }
+  .kpi-diff.neg { color: var(--insuficiente); }
+  .kpi-diff.neu { color: var(--slate); }
+  .kpi-slep { font-size: 0.7rem; color: var(--slate); }
+  .kpi-na { color: #ccc; font-size: 0.85rem; padding-top: 10px; }
+
+  /* ─── CHART SECTIONS ─── */
+  .section-title {
+    font-family: 'Source Serif 4', serif;
+    font-size: 1.05rem; font-weight: 600; color: var(--navy);
+    margin-bottom: 14px; padding-bottom: 8px;
+    border-bottom: 2px solid var(--border);
+    display: flex; align-items: center; gap: 8px;
+  }
+  .section-title .dot {
+    width: 10px; height: 10px; border-radius: 50%; background: var(--teal);
+  }
+
+  .charts-row {
+    display: grid; grid-template-columns: 1fr 1fr;
+    gap: 16px; margin-bottom: 20px;
+  }
+  .chart-card {
+    background: white; border: 1px solid var(--border);
+    border-radius: 14px; padding: 18px 20px;
+  }
+  .chart-title {
+    font-size: 0.82rem; font-weight: 600; color: var(--slate);
+    text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 14px;
+  }
+  .chart-wrap { position: relative; height: 200px; }
+
+  .stacked-grid {
+    display: grid; grid-template-columns: repeat(3, 1fr);
+    gap: 16px; margin-bottom: 20px;
+  }
+
+  /* ─── LEGEND ─── */
+  .legend-strip {
+    display: flex; gap: 20px; align-items: center;
+    padding: 10px 16px; background: #f8fafc;
+    border-radius: 8px; margin-bottom: 14px; flex-wrap: wrap;
+  }
+  .leg-item { display: flex; align-items: center; gap: 6px; font-size: 0.78rem; color: var(--slate); }
+  .leg-dot { width: 12px; height: 12px; border-radius: 3px; }
+
+  /* ─── NO DATA ─── */
+  .no-data {
+    display: flex; align-items: center; justify-content: center;
+    height: 160px; color: #a0aec0; font-size: 0.85rem;
+    flex-direction: column; gap: 8px;
+  }
+  .no-data-icon { font-size: 32px; }
+
+  /* ─── FOOTER ─── */
+  .dash-footer {
+    text-align: center; padding: 20px;
+    font-size: 0.75rem; color: #a0aec0; border-top: 1px solid var(--border);
+  }
+
+  /* ─── RESPONSIVE STYLES ─── */
+  @media (max-width: 1024px) {
+    .kpi-grid { grid-template-columns: repeat(3, 1fr); }
+    .charts-row, .stacked-grid { grid-template-columns: repeat(2, 1fr); }
+  }
+
+  @media (max-width: 768px) {
+    header { flex-direction: column; align-items: flex-start; gap: 12px; padding: 16px; }
+    .search-section { flex-direction: column; align-items: stretch; padding: 16px; }
+    .search-wrapper { max-width: 100%; }
+    .btn-pdf { justify-content: center; }
+    .estab-header { flex-direction: column; gap: 10px; }
+    .estab-header > div:last-child { text-align: left !important; }
+    #dashboard { padding: 16px; }
+    .welcome-stats { flex-wrap: wrap; }
+    .wstat { flex: 1 1 40%; }
+  }
+
+  @media (max-width: 480px) {
+    .kpi-grid { grid-template-columns: repeat(2, 1fr); }
+    .charts-row, .stacked-grid { grid-template-columns: 1fr; }
+    .legend-strip { flex-direction: column; align-items: flex-start; gap: 10px; }
+  }
+
+  /* ─── PDF PRINT STYLES ─── */
+  @media print {
+    header, .search-section, .btn-pdf { display: none !important; }
+    body { background: white; }
+    #dashboard { padding: 0; }
+    .chart-card, .kpi-card, .estab-header { break-inside: avoid; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-brand">
+    <div class="header-logo">🏫</div>
+    <div class="header-title">
+      <h1>SIMCE 2025 — Resultados por Establecimiento</h1>
+      <p>SLEP Del Pino · Comunas: Calera de Tango, El Bosque, La Pintana, San Bernardo</p>
+    </div>
+  </div>
+  <div class="header-badge">RESULTADOS PRELIMINARES</div>
+</header>
+
+<div class="search-section">
+  <div class="search-wrapper">
+    <span class="search-icon">🔍</span>
+    <input type="text" id="search-input" placeholder="Buscar establecimiento por nombre o RBD…" autocomplete="off">
+    <div id="search-results" style="display:none"></div>
+  </div>
+  <button class="btn-pdf" id="btn-pdf" onclick="downloadPDF()" disabled>
+    📄 Descargar Informe PDF
+  </button>
+</div>
+
+<div id="welcome">
+  <div class="welcome-card">
+    <div class="welcome-icon">📊</div>
+    <h2>Plataforma de Resultados SIMCE 2025</h2>
+    <p>Seleccione un establecimiento educacional usando el buscador para visualizar sus resultados SIMCE en Lenguaje y Matemática, y sus Estándares de Aprendizaje.</p>
+    <div class="welcome-stats">
+      <div class="wstat"><div class="wstat-n">78</div><div class="wstat-l">Establecimientos</div></div>
+      <div class="wstat"><div class="wstat-n">3</div><div class="wstat-l">Niveles</div></div>
+      <div class="wstat"><div class="wstat-n">2</div><div class="wstat-l">Asignaturas</div></div>
+      <div class="wstat"><div class="wstat-n">4</div><div class="wstat-l">Comunas</div></div>
+    </div>
+  </div>
+</div>
+
+<div id="dashboard"></div>
+
+<script>
+// ─── DATA ───────────────────────────────────────────────────────────
+const DATA = {"slep_avgs":{"PROM_4B_LEN":259.7,"PROM_4B_MAT":246.1,"PROM_8B_LEN":220.2,"PROM_8B_MAT":236.6,"PROM_2M_LEN":222.2,"PROM_2M_MAT":230.6},"establecimientos":[{"rbd":10686,"nombre":"LICEO MUNICIPAL POETISA GABRIELA MISTRAL","comuna":"CALERA DE TANGO","matricula":1,"simce":{"4B_LEN":263.0,"4B_MAT":232.0,"8B_LEN":224.0,"8B_MAT":232.0,"2M_LEN":211.0,"2M_MAT":229.0},"estandares":{"ADECUADO_4B_LEN":41.2,"ELEMENTAL_4B_LEN":19.6,"INSUFICIENTE_4B_LEN":39.2,"ADECUADO_4B_MAT":3.9,"ELEMENTAL_4B_MAT":37.3,"INSUFICIENTE_4B_MAT":58.8,"ADECUADO_8B_LEN":13.5,"ELEMENTAL_8B_LEN":34.6,"INSUFICIENTE_8B_LEN":51.9,"ADECUADO_8B_MAT":3.8,"ELEMENTAL_8B_MAT":26.9,"INSUFICIENTE_8B_MAT":69.2,"ADECUADO_2M_LEN":10.3,"ELEMENTAL_2M_LEN":16.2,"INSUFICIENTE_2M_LEN":73.5,"ADECUADO_2M_MAT":5.6,"ELEMENTAL_2M_MAT":19.7,"INSUFICIENTE_2M_MAT":74.6}},{"rbd":10687,"nombre":"ESCUELA BASICA F-N°798 CALERA DE TANGO","comuna":"CALERA DE TANGO","matricula":1,"simce":{"4B_LEN":286.0,"4B_MAT":279.0,"8B_LEN":230.0,"8B_MAT":245.0,"2M_LEN":null,"2M_MAT":null},"estandares":{"ADECUADO_4B_LEN":57.1,"ELEMENTAL_4B_LEN":26.5,"INSUFICIENTE_4B_LEN":16.3,"ADECUADO_4B_MAT":32.7,"ELEMENTAL_4B_MAT":46.9,"INSUFICIENTE_4B_MAT":20.4,"ADECUADO_8B_LEN":19.0,"ELEMENTAL_8B_LEN":28.6,"INSUFICIENTE_8B_LEN":52.4,"ADECUADO_8B_MAT":10.8,"ELEMENTAL_8B_MAT":38.5,"INSUFICIENTE_8B_MAT":50.8,"ADECUADO_2M_LEN":null,"ELEMENTAL_2M_LEN":null,"INSUFICIENTE_2M_LEN":null,"ADECUADO_2M_MAT":null,"ELEMENTAL_2M_MAT":null,"INSUFICIENTE_2M_MAT":null}},{"rbd":10688,"nombre":"LICEO LONQUEN","comuna":"CALERA DE TANGO","matricula":1,"simce":{"4B_LEN":289.0,"4B_MAT":258.0,"8B_LEN":232.0,"8B_MAT":225.0,"2M_LEN":null,"2M_MAT":null},"estandares":{"ADECUADO_4B_LEN":57.1,"ELEMENTAL_4B_LEN":28.6,"INSUFICIENTE_4B_LEN":14.3,"ADECUADO_4B_MAT":18.2,"ELEMENTAL_4B_MAT":45.5,"INSUFICIENTE_4B_MAT":36.4,"ADECUADO_8B_LEN":5.6,"ELEMENTAL_8B_LEN":53.7,"INSUFICIENTE_8B_LEN":40.7,"ADECUADO_8B_MAT":0.0,"ELEMENTAL_8B_MAT":23.2,"INSUFICIENTE_8B_MAT":76.8,"ADECUADO_2M_LEN":null,"ELEMENTAL_2M_LEN":null,"INSUFICIENTE_2M_LEN":null,"ADECUADO_2M_MAT":null,"ELEMENTAL_2M_MAT":null,"INSUFICIENTE_2M_MAT":null}},{"rbd":9687,"nombre":"LICEO CHRISTA MC AULIFFE","comuna":"EL BOSQUE","matricula":1,"simce":{"4B_LEN":null,"4B_MAT":null,"8B_LEN":null,"8B_MAT":null,"2M_LEN":229.0,"2M_MAT":217.0},"estandares":{"ADECUADO_4B_LEN":null,"ELEMENTAL_4B_LEN":null,"INSUFICIENTE_4B_LEN":null,"ADECUADO_4B_MAT":null,"ELEMENTAL_4B_MAT":null,"INSUFICIENTE_4B_MAT":null,"ADECUADO_8B_LEN":null,"ELEMENTAL_8B_LEN":null,"INSUFICIENTE_8B_LEN":null,"ADECUADO_8B_MAT":null,"ELEMENTAL_8B_MAT":null,"INSUFICIENTE_8B_MAT":null,"ADECUADO_2M_LEN":11.1,"ELEMENTAL_2M_LEN":26.4,"INSUFICIENTE_2M_LEN":62.5,"ADECUADO_2M_MAT":6.0,"ELEMENTAL_2M_MAT":14.9,"INSUFICIENTE_2M_MAT":79.1}},{"rbd":9698,"nombre":"ESCUELA BASICA AVIADORES","comuna":"EL BOSQUE","matricula":1,"simce":{"4B_LEN":300.0,"4B_MAT":288.0,"8B_LEN":234.0,"8B_MAT":287.0,"2M_LEN":null,"2M_MAT":null},"estandares":{"ADECUADO_4B_LEN":66.7,"ELEMENTAL_4B_LEN":25.9,"INSUFICIENTE_4B_LEN":7.4,"ADECUADO_4B_MAT":46.2,"ELEMENTAL_4B_MAT":42.3,"INSUFICIENTE_4B_MAT":11.5,"ADECUADO_8B_LEN":10.0,"ELEMENTAL_8B_LEN":40.0,"INSUFICIENTE_8B_LEN":50.0,"ADECUADO_8B_MAT":45.5,"ELEMENTAL_8B_MAT":36.4,"INSUFICIENTE_8B_MAT":18.2,"ADECUADO_2M_LEN":null,"ELEMENTAL_2M_LEN":null,"INSUFICIENTE_2M_LEN":null,"ADECUADO_2M_MAT":null,"ELEMENTAL_2M_MAT":null,"INSUFICIENTE_2M_MAT":null}},{"rbd":9702,"nombre":"ESCUELA BASICA MARIO ARCE GATICA","comuna":"EL BOSQUE","matricula":1,"simce":{"4B_LEN":294.0,"4B_MAT":280.0,"8B_LEN":235.0,"8B_MAT":234.0,"2M_LEN":null,"2M_MAT":null},"estandares":{"ADECUADO_4B_LEN":61.5,"ELEMENTAL_4B_LEN":15.4,"INSUFICIENTE_4B_LEN":23.1,"ADECUADO_4B_MAT":30.8,"ELEMENTAL_4B_MAT":53.8,"INSUFICIENTE_4B_MAT":15.4,"ADECUADO_8B_LEN":9.5,"ELEMENTAL_8B_LEN":42.9,"INSUFICIENTE_8B_LEN":47.6,"ADECUADO_8B_MAT":0.0,"ELEMENTAL_8B_MAT":40.9,"INSUFICIENTE_8B_MAT":59.1,"ADECUADO_2M_LEN":null,"ELEMENTAL_2M_LEN":null,"INSUFICIENTE_2M_LEN":null,"ADECUADO_2M_MAT":null,"ELEMENTAL_2M_MAT":null,"INSUFICIENTE_2M_MAT":null}},{"rbd":9713,"nombre":"COMPLEJO EDUCACIONAL FELIPE HERRERA LANE","comuna":"EL BOSQUE","matricula":1,"simce":{"4B_LEN":285.0,"4B_MAT":280.0,"8B_LEN":238.0,"8B_MAT":243.0,"2M_LEN":null,"2M_MAT":null},"estandares":{"ADECUADO_4B_LEN":70.0,"ELEMENTAL_4B_LEN":20.0,"INSUFICIENTE_4B_LEN":10.0,"ADECUADO_4B_MAT":30.0,"ELEMENTAL_4B_MAT":60.0,"INSUFICIENTE_4B_MAT":10.0,"ADECUADO_8B_LEN":13.3,"ELEMENTAL_8B_LEN":60.0,"INSUFICIENTE_8B_LEN":26.7,"ADECUADO_8B_MAT":0.0,"ELEMENTAL_8B_MAT":60.0,"INSUFICIENTE_8B_MAT":40.0,"ADECUADO_2M_LEN":null,"ELEMENTAL_2M_LEN":null,"INSUFICIENTE_2M_LEN":null,"ADECUADO_2M_MAT":null,"ELEMENTAL_2M_MAT":null,"INSUFICIENTE_2M_MAT":null}},{"rbd":9714,"nombre":"ESCUELA BASICA JOSE MARTI","comuna":"EL BOSQUE","matricula":1,"simce":{"4B_LEN":281.0,"4B_MAT":292.0,"8B_LEN":210.0,"8B_MAT":254.0,"2M_LEN":null,"2M_MAT":null},"estandares":{"ADECUADO_4B_LEN":53.1,"ELEMENTAL_4B_LEN":25.0,"INSUFICIENTE_4B_LEN":21.9,"ADECUADO_4B_MAT":55.2,"ELEMENTAL_4B_MAT":34.5,"INSUFICIENTE_4B_MAT":10.3,"ADECUADO_8B_LEN":7.7,"ELEMENTAL_8B_LEN":25.6,"INSUFICIENTE_8B_LEN":66.7,"ADECUADO_8B_MAT":26.3,"ELEMENTAL_8B_MAT":23.7,"INSUFICIENTE_8B_MAT":50.0,"ADECUADO_2M_LEN":null,"ELEMENTAL_2M_LEN":null,"INSUFICIENTE_2M_LEN":null,"ADECUADO_2M_MAT":null,"ELEMENTAL_2M_MAT":null,"INSUFICIENTE_2M_MAT":null}},{"rbd":9715,"nombre":"ESCUELA BASICA VILLA SANTA ELENA","comuna":"EL BOSQUE","matricula":1,"simce":{"4B_LEN":253.0,"4B_MAT":230.0,"8B_LEN":223.0,"8B_MAT":246.0,"2M_LEN":null,"2M_MAT":null},"estandares":{"ADECUADO_4B_LEN":25.0,"ELEMENTAL_4B_LEN":31.3,"INSUFICIENTE_4B_LEN":43.8,"ADECUADO_4B_MAT":11.8,"ELEMENTAL_4B_MAT":29.4,"INSUFICIENTE_4B_MAT":58.8,"ADECUADO_8B_LEN":13.6,"ELEMENTAL_8B_LEN":40.9,"INSUFICIENTE_8B_LEN":45.5,"ADECUADO_8B_MAT":0.0,"ELEMENTAL_8B_MAT":59.1,"INSUFICIENTE_8B_MAT":40.9,"ADECUADO_2M_LEN":null,"ELEMENTAL_2M_LEN":null,"INSUFICIENTE_2M_LEN":null,"ADECUADO_2M_MAT":null,"ELEMENTAL_2M_MAT":null,"INSUFICIENTE_2M_MAT":null}},{"rbd":9717,"nombre":"ESCUELA CIUDAD DE LYON","comuna":"EL BOSQUE","matricula":1,"simce":{"4B_LEN":260.0,"4B_MAT":236.0,"8B_LEN":209.0,"8B_MAT":227.0,"2M_LEN":null,"2M_MAT":null},"estandares":{"ADECUADO_4B_LEN":37.5,"ELEMENTAL_4B_LEN":20.8,"INSUFICIENTE_4B_LEN":41.7,"ADECUADO_4B_MAT":7.7,"ELEMENTAL_4B_MAT":26.9,"INSUFICIENTE_4B_MAT":65.4,"ADECUADO_8B_LEN":0.0,"ELEMENTAL_8B_LEN":35.0,"INSUFICIENTE_8B_LEN":65.0,"ADECUADO_8B_MAT":0.0,"ELEMENTAL_8B_MAT":22.2,"INSUFICIENTE_8B_MAT":77.8,"ADECUADO_2M_LEN":null,"ELEMENTAL_2M_LEN":null,"INSUFICIENTE_2M_LEN":null,"ADECUADO_2M_MAT":null,"ELEMENTAL_2M_MAT":null,"INSUFICIENTE_2M_MAT":null}},{"rbd":9718,"nombre":"ESCUELA BASICA PAUL HARRIS","comuna":"EL BOSQUE","matricula":1,"simce":{"4B_LEN":233.0,"4B_MAT":231.0,"8B_LEN":237.0,"8B_MAT":268.0,"2M_LEN":null,"2M_MAT":null},"estandares":{"ADECUADO_4B_LEN":16.7,"ELEMENTAL_4B_LEN":22.2,"INSUFICIENTE_4B_LEN":61.1,"ADECUADO_4B_MAT":5.6,"ELEMENTAL_4B_MAT":33.3,"INSUFICIENTE_4B_MAT":61.1,"ADECUADO_8B_LEN":29.4,"ELEMENTAL_8B_LEN":29.4,"INSUFICIENTE_8B_LEN":41.2,"ADECUADO_8B_MAT":38.9,"ELEMENTAL_8B_MAT":22.2,"INSUFICIENTE_8B_MAT":38.9,"ADECUADO_2M_LEN":null,"ELEMENTAL_2M_LEN":null,"INSUFICIENTE_2M_LEN":null,"ADECUADO_2M_MAT":null,"ELEMENTAL_2M_MAT":null,"INSUFICIENTE_2M_MAT":null}},{"rbd":9721,"nombre":"ESCUELA NEMESIO ANTUNEZ","comuna":"EL BOSQUE","matricula":1,"simce":{"4B_LEN":242.0,"4B_MAT":251.0,"8B_LEN":237.0,"8B_MAT":228.0,"2M_LEN":null,"2M_MAT":null},"estandares":{"ADECUADO_4B_LEN":13.6,"ELEMENTAL_4B_LEN":36.4,"INSUFICIENTE_4B_LEN":50.0,"ADECUADO_4B_MAT":13.6,"ELEMENTAL_4B_MAT":31.8,"INSUFICIENTE_4B_MAT":54.5,"ADECUADO_8B_LEN":14.3,"ELEMENTAL_8B_LEN":42.9,"INSUFICIENTE_8B_LEN":42.9,"ADECUADO_8B_MAT":3.4,"ELEMENTAL_8B_MAT":34.5,"INSUFICIENTE_8B_MAT":62.1,"ADECUADO_2M_LEN":null,"ELEMENTAL_2M_LEN":null,"INSUFICIENTE_2M_LEN":null,"ADECUADO_2M_MAT":null,"ELEMENTAL_2M_MAT":null,"INSUFICIENTE_2M_MAT":null}},{"rbd":9728,"nombre":"ESCUELA DIFERENCIAL PARA NINOS SORDOS","comuna":"EL BOSQUE","matricula":1,"simce":{"4B_LEN":null,"4B_MAT":null,"8B_LEN":null,"8B_MAT":null,"2M_LEN":null,"2M_MAT":null},"estandares":{"ADECUADO_4B_LEN":null,"ELEMENTAL_4B_LEN":null,"INSUFICIENTE_4B_LEN":null,"ADECUADO_4B_MAT":null,"ELEMENTAL_4B_MAT":null,"INSUFICIENTE_4B_MAT":null,"ADECUADO_8B_LEN":null,"ELEMENTAL_8B_LEN":null,"INSUFICIENTE_8B_LEN":null,"ADECUADO_8B_MAT":null,"ELEMENTAL_8B_MAT":null,"INSUFICIENTE_8B_MAT":null,"ADECUADO_2M_LEN":null,"ELEMENTAL_2M_LEN":null,"INSUFICIENTE_2M_LEN":null,"ADECUADO_2M_MAT":null,"ELEMENTAL_2M_MAT":null,"INSUFICIENTE_2M_MAT":null}},{"rbd":10553,"nombre":"ESCUELA MARCIAL MARTINEZ FERRARI","comuna":"EL BOSQUE","matricula":1,"simce":{"4B_LEN":274.0,"4B_MAT":253.0,"8B_LEN":222.0,"8B_MAT":244.0,"2M_LEN":null,"2M_MAT":null},"estandares":{"ADECUADO_4B_LEN":45.2,"ELEMENTAL_4B_LEN":32.3,"INSUFICIENTE_4B_LEN":22.6,"ADECUADO_4B_MAT":20.0,"ELEMENTAL_4B_MAT":31.4,"INSUFICIENTE_4B_MAT":48.6,"ADECUADO_8B_LEN":7.7,"ELEMENTAL_8B_LEN":38.5,"INSUFICIENTE_8B_LEN":53.8,"ADECUADO_8B_MAT":12.2,"ELEMENTAL_8B_MAT":32.7,"INSUFICIENTE_8B_MAT":55.1,"ADECUADO_2M_LEN":null,"ELEMENTAL_2M_LEN":null,"INSUFICIENTE_2M_LEN":null,"ADECUADO_2M_MAT":null,"ELEMENTAL_2M_MAT":null,"INSUFICIENTE_2M_MAT":null}},{"rbd":10555,"nombre":"ESCUELA BASICA BASE EL BOSQUE","comuna":"EL BOSQUE","matricula":1,"simce":{"4B_LEN":323.0,"4B_MAT":316.0,"8B_LEN":245.0,"8B_MAT":319.0,"2M_LEN":null,"2M_MAT":null},"estandares":{"ADECUADO_4B_LEN":89.7,"ELEMENTAL_4B_LEN":3.4,"INSUFICIENTE_4B_LEN":6.9,"ADECUADO_4B_MAT":79.3,"ELEMENTAL_4B_MAT":17.2,"INSUFICIENTE_4B_MAT":3.4,"ADECUADO_8B_LEN":28.0,"ELEMENTAL_8B_LEN":32.0,"INSUFICIENTE_8B_LEN":40.0,"ADECUADO_8B_MAT":63.6,"ELEMENTAL_8B_MAT":36.4,"INSUFICIENTE_8B_MAT":0.0,"ADECUADO_2M_LEN":null,"ELEMENTAL_2M_LEN":null,"INSUFICIENTE_2M_LEN":null,"ADECUADO_2M_MAT":null,"ELEMENTAL_2M_MAT":null,"INSUFICIENTE_2M_MAT":null}},{"rbd":10557,"nombre":"ESCUELA GENERAL ALBERTO A. BACHELET MARTINEZ","comuna":"EL BOSQUE","matricula":1,"simce":{"4B_LEN":287.0,"4B_MAT":263.0,"8B_LEN":237.0,"8B_MAT":250.0,"2M_LEN":null,"2M_MAT":null},"estandares":{"ADECUADO_4B_LEN":51.6,"ELEMENTAL_4B_LEN":29.0,"INSUFICIENTE_4B_LEN":19.4,"ADECUADO_4B_MAT":27.8,"ELEMENTAL_4B_MAT":36.1,"INSUFICIENTE_4B_MAT":36.1,"ADECUADO_8B_LEN":16.0,"ELEMENTAL_8B_LEN":42.0,"INSUFICIENTE_8B_LEN":42.0,"ADECUADO_8B_MAT":19.1,"ELEMENTAL_8B_MAT":23.4,"INSUFICIENTE_8B_MAT":57.4,"ADECUADO_2M_LEN":null,"ELEMENTAL_2M_LEN":null,"INSUFICIENTE_2M_LEN":null,"ADECUADO_2M_MAT":null,"ELEMENTAL_2M_MAT":null,"INSUFICIENTE_2M_MAT":null}},{"rbd":10559,"nombre":"ESCUELA BERNARDO LEIGHTON","comuna":"EL BOSQUE","matricula":1,"simce":{"4B_LEN":245.0,"4B_MAT":241.0,"8B_LEN":224.0,"8B_MAT":244.0,"2M_LEN":null,"2M_MAT":null},"estandares":{"ADECUADO_4B_LEN":null,"ELEMENTAL_4B_LEN":null,"INSUFICIENTE_4B_LEN":null,"ADECUADO_4B_MAT":null,"ELEMENTAL_4B_MAT":null,"INSUFICIENTE_4B_MAT":null,"ADECUADO_8B_LEN":13.6,"ELEMENTAL_8B_LEN":36.4,"INSUFICIENTE_8B_LEN":50.0,"ADECUADO_8B_MAT":9.5,"ELEMENTAL_8B_MAT":38.1,"INSUFICIENTE_8B_MAT":52.4,"ADECUADO_2M_LEN":null,"ELEMENTAL_2M_LEN":null,"INSUFICIENTE_2M_LEN":null,"ADECUADO_2M_MAT":null,"ELEMENTAL_2M_MAT":null,"INSUFICIENTE_2M_MAT":null}},{"rbd":10561,"nombre":"ESCUELA CLAUDIO ARRAU LEON","comuna":"EL BOSQUE","matricula":1,"simce":{"4B_LEN":287.0,"4B_MAT":269.0,"8B_LEN":236.0,"8B_MAT":250.0,"2M_LEN":null,"2M_MAT":null},"estandares":{"ADECUADO_4B_LEN":68.8,"ELEMENTAL_4B_LEN":12.5,"INSUFICIENTE_4B_LEN":18.8,"ADECUADO_4B_MAT":35.3,"ELEMENTAL_4B_MAT":35.3,"INSUFICIENTE_4B_MAT":29.4,"ADECUADO_8B_LEN":5.0,"ELEMENTAL_8B_LEN":60.0,"INSUFICIENTE_8B_LEN":35.0,"ADECUADO_8B_MAT":0.0,"ELEMENTAL_8B_MAT":59.1,"INSUFICIENTE_8B_MAT":40.9,"ADECUADO_2M_LEN":null,"ELEMENTAL_2M_LEN":null,"INSUFICIENTE_2M_LEN":null,"ADECUADO_2M_MAT":null,"ELEMENTAL_2M_MAT":null,"INSUFICIENTE_2M_MAT":null}},{"rbd":10568,"nombre":"ESCUELA ORLANDO LETELIER","comuna":"EL BOSQUE","matricula":1,"simce":{"4B_LEN":301.0,"4B_MAT":300.0,"8B_LEN":229.0,"8B_MAT":220.0,"2M_LEN":null,"2M_MAT":null},"estandares":{"ADECUADO_4B_LEN":68.4,"ELEMENTAL_4B_LEN":15.8,"INSUFICIENTE_4B_LEN":15.8,"ADECUADO_4B_MAT":57.9,"ELEMENTAL_4B_MAT":31.6,"INSUFICIENTE_4B_MAT":10.5,"ADECUADO_8B_LEN":17.9,"ELEMENTAL_8B_LEN":35.7,"INSUFICIENTE_8B_LEN":46.4,"ADECUADO_8B_MAT":0.0,"ELEMENTAL_8B_MAT":22.2,"INSUFICIENTE_8B_MAT":77.8,"ADECUADO_2M_LEN":null,"ELEMENTAL_2M_LEN":null,"INSUFICIENTE_2M_LEN":null,"ADECUADO_2M_MAT":null,"ELEMENTAL_2M_MAT":null,"INSUFICIENTE_2M_MAT":null}},{"rbd":10572,"nombre":"LICEO FRAY LUIS BELTRAN","comuna":"EL BOSQUE","matricula":1,"simce":{"4B_LEN":null,"4B_MAT":null,"8B_LEN":null,"8B_MAT":null,"2M_LEN":null,"2M_MAT":null},"estandares":{"ADECUADO_4B_LEN":null,"ELEMENTAL_4B_LEN":null,"INSUFICIENTE_4B_LEN":null,"ADECUADO_4B_MAT":null,"ELEMENTAL_4B_MAT":null,"INSUFICIENTE_4B_MAT":null,"ADECUADO_8B_LEN":null,"ELEMENTAL_8B_LEN":null,"INSUFICIENTE_8B_LEN":null,"ADECUADO_8B_MAT":null,"ELEMENTAL_8B_MAT":null,"INSUFICIENTE_8B_MAT":null,"ADECUADO_2M_LEN":null,"ELEMENTAL_2M_LEN":null,"INSUFICIENTE_2M_LEN":null,"ADECUADO_2M_MAT":null,"ELEMENTAL_2M_MAT":null,"INSUFICIENTE_2M_MAT":null}},{"rbd":10573,"nombre":"CENTRO EDUCACIONAL MATIAS COUSINO","comuna":"EL BOSQUE","matricula":1,"simce":{"4B_LEN":null,"4B_MAT":null,"8B_LEN":null,"8B_MAT":null,"2M_LEN":227.0,"2M_MAT":219.0},"estandares":{"ADECUADO_4B_LEN":null,"ELEMENTAL_4B_LEN":null,"INSUFICIENTE_4B_LEN":null,"ADECUADO_4B_MAT":null,"ELEMENTAL_4B_MAT":null,"INSUFICIENTE_4B_MAT":null,"ADECUADO_8B_LEN":null,"ELEMENTAL_8B_LEN":null,"INSUFICIENTE_8B_LEN":null,"ADECUADO_8B_MAT":null,"ELEMENTAL_8B_MAT":null,"INSUFICIENTE_8B_MAT":null,"ADECUADO_2M_LEN":0.0,"ELEMENTAL_2M_LEN":30.0,"INSUFICIENTE_2M_LEN":70.0,"ADECUADO_2M_MAT":7.7,"ELEMENTAL_2M_MAT":15.4,"INSUFICIENTE_2M_MAT":76.9}},{"rbd":12251,"nombre":"COLEGIO BATALLA DE LA CONCEPCION","comuna":"EL BOSQUE","matricula":1,"simce":{"4B_LEN":259.0,"4B_MAT":250.0,"8B_LEN":201.0,"8B_MAT":217.0,"2M_LEN":null,"2M_MAT":null},"estandares":{"ADECUADO_4B_LEN":30.4,"ELEMENTAL_4B_LEN":34.8,"INSUFICIENTE_4B_LEN":34.8,"ADECUADO_4B_MAT":12.5,"ELEMENTAL_4B_MAT":33.3,"INSUFICIENTE_4B_MAT":54.2,"ADECUADO_8B_LEN":0.0,"ELEMENTAL_8B_LEN":30.8,"INSUFICIENTE_8B_LEN":69.2,"ADECUADO_8B_MAT":0.0,"ELEMENTAL_8B_MAT":19.2,"INSUFICIENTE_8B_MAT":80.8,"ADECUADO_2M_LEN":null,"ELEMENTAL_2M_LEN":null,"INSUFICIENTE_2M_LEN":null,"ADECUADO_2M_MAT":null,"ELEMENTAL_2M_MAT":null,"INSUFICIENTE_2M_MAT":null}},{"rbd":24822,"nombre":"ESC. BAS. PDTE. SALVADOR ALLENDE G.","comuna":"EL BOSQUE","matricula":1,"simce":{"4B_LEN":275.0,"4B_MAT":254.0,"8B_LEN":205.0,"8B_MAT":231.0,"2M_LEN":null,"2M_MAT":null},"estandares":{"ADECUADO_4B_LEN":42.1,"ELEMENTAL_4B_LEN":36.8,"INSUFICIENTE_4B_LEN":21.1,"ADECUADO_4B_MAT":5.3,"ELEMENTAL_4B_MAT":68.4,"INSUFICIENTE_4B_MAT":26.3,"ADECUADO_8B_LEN":0.0,"ELEMENTAL_8B_LEN":31.4,"INSUFICIENTE_8B_LEN":68.6,"ADECUADO_8B_MAT":5.7,"ELEMENTAL_8B_MAT":25.7,"INSUFICIENTE_8B_MAT":68.6,"ADECUADO_2M_LEN":null,"ELEMENTAL_2M_LEN":null,"INSUFICIENTE_2M_LEN":null,"ADECUADO_2M_MAT":null,"ELEMENTAL_2M_MAT":null,"INSUFICIENTE_2M_MAT":null}},{"rbd":9583,"nombre":"CENTRO EDUCACIONAL MUN.MARIANO LATORRE","comuna":"LA PINTANA","matricula":1,"simce":{"4B_LEN":null,"4B_MAT":null,"8B_LEN":null,"8B_MAT":null,"2M_LEN":222.0,"2M_MAT":233.0},"estandares":{"ADECUADO_4B_LEN":null,"ELEMENTAL_4B_LEN":null,"INSUFICIENTE_4B_LEN":null,"ADECUADO_4B_MAT":null,"ELEMENTAL_4B_MAT":null,"INSUFICIENTE_4B_MAT":null,"ADECUADO_8B_LEN":null,"ELEMENTAL_8B_LEN":null,"INSUFICIENTE_8B_LEN":null,"ADECUADO_8B_MAT":null,"ELEMENTAL_8B_MAT":null,"INSUFICIENTE_8B_MAT":null,"ADECUADO_2M_LEN":8.2,"ELEMENTAL_2M_LEN":22.4,"INSUFICIENTE_2M_LEN":69.4,"ADECUADO_2M_MAT":8.2,"ELEMENTAL_2M_MAT":24.5,"INSUFICIENTE_2M_MAT":67.3}},{"rbd":9591,"nombre":"LICEO N523","comuna":"LA PINTANA","matricula":1,"simce":{"4B_LEN":243.0,"4B_MAT":238.0,"8B_LEN":196.0,"8B_MAT":226.0,"2M_LEN":null,"2M_MAT":null},"estandares":{"ADECUADO_4B_LEN":14.3,"ELEMENTAL_4B_LEN":28.6,"INSUFICIENTE_4B_LEN":57.1,"ADECUADO_4B_MAT":4.8,"ELEMENTAL_4B_MAT":38.1,"INSUFICIENTE_4B_MAT":57.1,"ADECUADO_8B_LEN":15.4,"ELEMENTAL_8B_LEN":0.0,"INSUFICIENTE_8B_LEN":84.6,"ADECUADO_8B_MAT":0.0,"ELEMENTAL_8B_MAT":16.7,"INSUFICIENTE_8B_MAT":83.3,"ADECUADO_2M_LEN":null,"ELEMENTAL_2M_LEN":null,"INSUFICIENTE_2M_LEN":null,"ADECUADO_2M_MAT":null,"ELEMENTAL_2M_MAT":null,"INSUFICIENTE_2M_MAT":null}},{"rbd":9595,"nombre":"ESCUELA CAPITAN AVALOS","comuna":"LA PINTANA","matricula":1,"simce":{"4B_LEN":235.0,"4B_MAT":226.0,"8B_LEN":225.0,"8B_MAT":233.0,"2M_LEN":null,"2M_MAT":null},"estandares":{"ADECUADO_4B_LEN":8.0,"ELEMENTAL_4B_LEN":32.0,"INSUFICIENTE_4B_LEN":60.0,"ADECUADO_4B_MAT":6.7,"ELEMENTAL_4B_MAT":26.7,"INSUFICIENTE_4B_MAT":66.7,"ADECUADO_8B_LEN":11.5,"ELEMENTAL_8B_LEN":30.8,"INSUFICIENTE_8B_LEN":57.7,"ADECUADO_8B_MAT":8.7,"ELEMENTAL_8B_MAT":21.7,"INSUFICIENTE_8B_MAT":69.6,"ADECUADO_2M_LEN":null,"ELEMENTAL_2M_LEN":null,"INSUFICIENTE_2M_LEN":null,"ADECUADO_2M_MAT":null,"ELEMENTAL_2M_MAT":null,"INSUFICIENTE_2M_MAT":null}},{"rbd":9597,"nombre":"ESCUELA PABLO DE ROKHA","comuna":"LA PINTANA","matricula":1,"simce":{"4B_LEN":224.0,"4B_MAT":224.0,"8B_LEN":220.0,"8B_MAT":224.0,"2M_LEN":null,"2M_MAT":null},"estandares":{"ADECUADO_4B_LEN":null,"ELEMENTAL_4B_LEN":null,"INSUFICIENTE_4B_LEN":null,"ADECUADO_4B_MAT":null,"ELEMENTAL_4B_MAT":null,"INSUFICIENTE_4B_MAT":null,"ADECUADO_8B_LEN":null,"ELEMENTAL_8B_LEN":null,"INSUFICIENTE_8B_LEN":null,"ADECUADO_8B_MAT":null,"ELEMENTAL_8B_MAT":null,"INSUFICIENTE_8B_MAT":null,"ADECUADO_2M_LEN":null,"ELEMENTAL_2M_LEN":null,"INSUFICIENTE_2M_LEN":null,"ADECUADO_2M_MAT":null,"ELEMENTAL_2M_MAT":null,"INSUFICIENTE_2M_MAT":null}},{"rbd":9598,"nombre":"ESCUELA MUNICIPAL VIOLETA PARRA","comuna":"LA PINTANA","matricula":1,"simce":{"4B_LEN":232.0,"4B_MAT":213.0,"8B_LEN":215.0,"8B_MAT":232.0,"2M_LEN":null,"2M_MAT":null},"estandares":{"ADECUADO_4B_LEN":22.6,"ELEMENTAL_4B_LEN":16.1,"INSUFICIENTE_4B_LEN":61.3,"ADECUADO_4B_MAT":3.1,"ELEMENTAL_4B_MAT":15.6,"INSUFICIENTE_4B_MAT":81.3,"ADECUADO_8B_LEN":13.3,"ELEMENTAL_8B_LEN":26.7,"INSUFICIENTE_8B_LEN":60.0,"ADECUADO_8B_MAT":5.6,"ELEMENTAL_8B_MAT":27.8,"INSUFICIENTE_8B_MAT":66.7,"ADECUADO_2M_LEN":null,"ELEMENTAL_2M_LEN":null,"INSUFICIENTE_2M_LEN":null,"ADECUADO_2M_MAT":null,"ELEMENTAL_2M_MAT":null,"INSUFICIENTE_2M_MAT":null}},{"rbd":9602,"nombre":"COLEGIO NERUDA","comuna":"LA PINTANA","matricula":1,"simce":{"4B_LEN":283.0,"4B_MAT":260.0,"8B_LEN":227.0,"8B_MAT":235.0,"2M_LEN":null,"2M_MAT":null},"estandares":{"ADECUADO_4B_LEN":45.0,"ELEMENTAL_4B_LEN":35.0,"INSUFICIENTE_4B_LEN":20.0,"ADECUADO_4B_MAT":20.0,"ELEMENTAL_4B_MAT":45.0,"INSUFICIENTE_4B_MAT":35.0,"ADECUADO_8B_LEN":20.0,"ELEMENTAL_8B_LEN":28.0,"INSUFICIENTE_8B_LEN":52.0,"ADECUADO_8B_MAT":12.0,"ELEMENTAL_8B_MAT":28.0,"INSUFICIENTE_8B_MAT":60.0,"ADECUADO_2M_LEN":null,"ELEMENTAL_2M_LEN":null,"INSUFICIENTE_2M_LEN":null,"ADECUADO_2M_MAT":null,"ELEMENTAL_2M_MAT":null,"INSUFICIENTE_2M_MAT":null}},{"rbd":9604,"nombre":"LICEO MUNICIPALIZADO CENT.ED. LA PINTANA","comuna":"LA PINTANA","matricula":1,"simce":{"4B_LEN":227.0,"4B_MAT":206.0,"8B_LEN":226.0,"8B_MAT":233.0,"2M_LEN":null,"2M_MAT":null},"estandares":{"ADECUADO_4B_LEN":18.4,"ELEMENTAL_4B_LEN":18.4,"INSUFICIENTE_4B_LEN":63.3,"ADECUADO_4B_MAT":4.0,"ELEMENTAL_4B_MAT":14.0,"INSUFICIENTE_4B_MAT":82.0,"ADECUADO_8B_LEN":11.9,"ELEMENTAL_8B_LEN":23.8,"INSUFICIENTE_8B_LEN":64.3,"ADECUADO_8B_MAT":0.0,"ELEMENTAL_8B_MAT":36.8,"INSUFICIENTE_8B_MAT":63.2,"ADECUADO_2M_LEN":null,"ELEMENTAL_2M_LEN":null,"INSUFICIENTE_2M_LEN":null,"ADECUADO_2M_MAT":null,"ELEMENTAL_2M_MAT":null,"INSUFICIENTE_2M_MAT":null}},{"rbd":9616,"nombre":"LICEO VICTOR JARA","comuna":"LA PINTANA","matricula":1,"simce":{"4B_LEN":270.0,"4B_MAT":250.0,"8B_LEN":226.0,"8B_MAT":228.0,"2M_LEN":null,"2M_MAT":null},"estandares":{"ADECUADO_4B_LEN":38.1,"ELEMENTAL_4B_LEN":23.8,"INSUFICIENTE_4B_LEN":38.1,"ADECUADO_4B_MAT":13.0,"ELEMENTAL_4B_MAT":43.5,"INSUFICIENTE_4B_MAT":43.5,"ADECUADO_8B_LEN":6.7,"ELEMENTAL_8B_LEN":37.8,"INSUFICIENTE_8B_LEN":55.6,"ADECUADO_8B_MAT":2.1,"ELEMENTAL_8B_MAT":29.2,"INSUFICIENTE_8B_MAT":68.8,"ADECUADO_2M_LEN":null,"ELEMENTAL_2M_LEN":null,"INSUFICIENTE_2M_LEN":null,"ADECUADO_2M_MAT":null,"ELEMENTAL_2M_MAT":null,"INSUFICIENTE_2M_MAT":null}},{"rbd":9620,"nombre":"ESCUELA BASICA JUAN DE DIOS ALDEA","comuna":"LA PINTANA","matricula":1,"simce":{"4B_LEN":237.0,"4B_MAT":230.0,"8B_LEN":199.0,"8B_MAT":223.0,"2M_LEN":null,"2M_MAT":null},"estandares":{"ADECUADO_4B_LEN":18.2,"ELEMENTAL_4B_LEN":27.3,"INSUFICIENTE_4B_LEN":54.5,"ADECUADO_4B_MAT":5.0,"ELEMENTAL_4B_MAT":25.0,"INSUFICIENTE_4B_MAT":70.0,"ADECUADO_8B_LEN":0.0,"ELEMENTAL_8B_LEN":19.0,"INSUFICIENTE_8B_LEN":81.0,"ADECUADO_8B_MAT":0.0,"ELEMENTAL_8B_MAT":33.3,"INSUFICIENTE_8B_MAT":66.7,"ADECUADO_2M_LEN":null,"ELEMENTAL_2M_LEN":null,"INSUFICIENTE_2M_LEN":null,"ADECUADO_2M_MAT":null,"ELEMENTAL_2M_MAT":null,"INSUFICIENTE_2M_MAT":null}},{"rbd":24403,"nombre":"COLEGIO SIMON BOLIVAR","comuna":"LA PINTANA","matricula":1,"simce":{"4B_LEN":267.0,"4B_MAT":255.0,"8B_LEN":195.0,"8B_MAT":214.0,"2M_LEN":163.0,"2M_MAT":196.0},"estandares":{"ADECUADO_4B_LEN":37.0,"ELEMENTAL_4B_LEN":40.7,"INSUFICIENTE_4B_LEN":22.2,"ADECUADO_4B_MAT":3.8,"ELEMENTAL_4B_MAT":69.2,"INSUFICIENTE_4B_MAT":26.9,"ADECUADO_8B_LEN":6.3,"ELEMENTAL_8B_LEN":15.6,"INSUFICIENTE_8B_LEN":78.1,"ADECUADO_8B_MAT":3.4,"ELEMENTAL_8B_MAT":3.4,"INSUFICIENTE_8B_MAT":93.1,"ADECUADO_2M_LEN":0.0,"ELEMENTAL_2M_LEN":0.0,"INSUFICIENTE_2M_LEN":100.0,"ADECUADO_2M_MAT":0.0,"ELEMENTAL_2M_MAT":0.0,"INSUFICIENTE_2M_MAT":100.0}},{"rbd":24445,"nombre":"LICEO MUNICIPAL EL ROBLE","comuna":"LA PINTANA","matricula":1,"simce":{"4B_LEN":263.0,"4B_MAT":250.0,"8B_LEN":228.0,"8B_MAT":230.0,"2M_LEN":null,"2M_MAT":null},"estandares":{"ADECUADO_4B_LEN":43.3,"ELEMENTAL_4B_LEN":20.0,"INSUFICIENTE_4B_LEN":36.7,"ADECUADO_4B_MAT":10.0,"ELEMENTAL_4B_MAT":53.3,"INSUFICIENTE_4B_MAT":36.7,"ADECUADO_8B_LEN":9.1,"ELEMENTAL_8B_LEN":39.4,"INSUFICIENTE_8B_LEN":51.5,"ADECUADO_8B_MAT":6.1,"ELEMENTAL_8B_MAT":24.2,"INSUFICIENTE_8B_MAT":69.7,"ADECUADO_2M_LEN":null,"ELEMENTAL_2M_LEN":null,"INSUFICIENTE_2M_LEN":null,"ADECUADO_2M_MAT":null,"ELEMENTAL_2M_MAT":null,"INSUFICIENTE_2M_MAT":null}},{"rbd":24876,"nombre":"ESC.BASICA PROF.AURELIA ROJAS BURGOS","comuna":"LA PINTANA","matricula":1,"simce":{"4B_LEN":263.0,"4B_MAT":240.0,"8B_LEN":215.0,"8B_MAT":230.0,"2M_LEN":null,"2M_MAT":null},"estandares":{"ADECUADO_4B_LEN":35.0,"ELEMENTAL_4B_LEN":25.0,"INSUFICIENTE_4B_LEN":40.0,"ADECUADO_4B_MAT":5.0,"ELEMENTAL_4B_MAT":40.0,"INSUFICIENTE_4B_MAT":55.0,"ADECUADO_8B_LEN":3.3,"ELEMENTAL_8B_LEN":33.3,"INSUFICIENTE_8B_LEN":63.3,"ADECUADO_8B_MAT":6.7,"ELEMENTAL_8B_MAT":26.7,"INSUFICIENTE_8B_MAT":66.7,"ADECUADO_2M_LEN":null,"ELEMENTAL_2M_LEN":null,"INSUFICIENTE_2M_LEN":null,"ADECUADO_2M_MAT":null,"ELEMENTAL_2M_MAT":null,"INSUFICIENTE_2M_MAT":null}},{"rbd":25824,"nombre":"LICEO SERGIO SILVA BASCUNAN","comuna":"LA PINTANA","matricula":1,"simce":{"4B_LEN":null,"4B_MAT":null,"8B_LEN":null,"8B_MAT":null,"2M_LEN":227.0,"2M_MAT":244.0},"estandares":{"ADECUADO_4B_LEN":null,"ELEMENTAL_4B_LEN":null,"INSUFICIENTE_4B_LEN":null,"ADECUADO_4B_MAT":null,"ELEMENTAL_4B_MAT":null,"INSUFICIENTE_4B_MAT":null,"ADECUADO_8B_LEN":null,"ELEMENTAL_8B_LEN":null,"INSUFICIENTE_8B_LEN":null,"ADECUADO_8B_MAT":null,"ELEMENTAL_8B_MAT":null,"INSUFICIENTE_8B_MAT":null,"ADECUADO_2M_LEN":9.8,"ELEMENTAL_2M_LEN":16.8,"INSUFICIENTE_2M_LEN":73.4,"ADECUADO_2M_MAT":11.4,"ELEMENTAL_2M_MAT":29.7,"INSUFICIENTE_2M_MAT":58.9}},{"rbd":25938,"nombre":"LICEO DE ADULTOS CEIA DE LA PINTANA","comuna":"LA PINTANA","matricula":1,"simce":{"4B_LEN":null,"4B_MAT":null,"8B_LEN":null,"8B_MAT":null,"2M_LEN":null,"2M_MAT":null},"estandares":{"ADECUADO_4B_LEN":null,"ELEMENTAL_4B_LEN":null,"INSUFICIENTE_4B_LEN":null,"ADECUADO_4B_MAT":null,"ELEMENTAL_4B_MAT":null,"INSUFICIENTE_4B_MAT":null,"ADECUADO_8B_LEN":null,"ELEMENTAL_8B_LEN":null,"INSUFICIENTE_8B_LEN":null,"ADECUADO_8B_MAT":null,"ELEMENTAL_8B_MAT":null,"INSUFICIENTE_8B_MAT":null,"ADECUADO_2M_LEN":null,"ELEMENTAL_2M_LEN":null,"INSUFICIENTE_2M_LEN":null,"ADECUADO_2M_MAT":null,"ELEMENTAL_2M_MAT":null,"INSUFICIENTE_2M_MAT":null}},{"rbd":10542,"nombre":"CENTRO EDUCACIONAL BALDOMERO LILLO","comuna":"SAN BERNARDO","matricula":1,"simce":{"4B_LEN":269.0,"4B_MAT":251.0,"8B_LEN":211.0,"8B_MAT":226.0,"2M_LEN":213.0,"2M_MAT":219.0},"estandares":{"ADECUADO_4B_LEN":52.4,"ELEMENTAL_4B_LEN":19.0,"INSUFICIENTE_4B_LEN":28.6,"ADECUADO_4B_MAT":4.5,"ELEMENTAL_4B_MAT":50.0,"INSUFICIENTE_4B_MAT":45.5,"ADECUADO_8B_LEN":10.4,"ELEMENTAL_8B_LEN":25.0,"INSUFICIENTE_8B_LEN":64.6,"ADECUADO_8B_MAT":0.0,"ELEMENTAL_8B_MAT":27.5,"INSUFICIENTE_8B_MAT":72.5,"ADECUADO_2M_LEN":4.6,"ELEMENTAL_2M_LEN":16.9,"INSUFICIENTE_2M_LEN":78.5,"ADECUADO_2M_MAT":1.4,"ELEMENTAL_2M_MAT":14.5,"INSUFICIENTE_2M_MAT":84.1}},{"rbd":10543,"nombre":"LICEO POLIVALENTE A-127 FIDEL PINOCHET LE-BRUN","comuna":"SAN BERNARDO","matricula":1,"simce":{"4B_LEN":null,"4B_MAT":null,"8B_LEN":null,"8B_MAT":null,"2M_LEN":231.0,"2M_MAT":239.0},"estandares":{"ADECUADO_4B_LEN":null,"ELEMENTAL_4B_LEN":null,"INSUFICIENTE_4B_LEN":null,"ADECUADO_4B_MAT":null,"ELEMENTAL_4B_MAT":null,"INSUFICIENTE_4B_MAT":null,"ADECUADO_8B_LEN":null,"ELEMENTAL_8B_LEN":null,"INSUFICIENTE_8B_LEN":null,"ADECUADO_8B_MAT":null,"ELEMENTAL_8B_MAT":null,"INSUFICIENTE_8B_MAT":null,"ADECUADO_2M_LEN":12.5,"ELEMENTAL_2M_LEN":25.0,"INSUFICIENTE_2M_LEN":62.5,"ADECUADO_2M_MAT":8.5,"ELEMENTAL_2M_MAT":25.6,"INSUFICIENTE_2M_MAT":65.9}},{"rbd":10544,"nombre":"LICEO ELVIRA BRADY MALDONADO-SN.BERNARDO","comuna":"SAN BERNARDO","matricula":1,"simce":{"4B_LEN":null,"4B_MAT":null,"8B_LEN":null,"8B_MAT":null,"2M_LEN":229.0,"2M_MAT":239.0},"estandares":{"ADECUADO_4B_LEN":null,"ELEMENTAL_4B_LEN":null,"INSUFICIENTE_4B_LEN":null,"ADECUADO_4B_MAT":null,"ELEMENTAL_4B_MAT":null,"INSUFICIENTE_4B_MAT":null,"ADECUADO_8B_LEN":null,"ELEMENTAL_8B_LEN":null,"INSUFICIENTE_8B_LEN":null,"ADECUADO_8B_MAT":null,"ELEMENTAL_8B_MAT":null,"INSUFICIENTE_8B_MAT":null,"ADECUADO_2M_LEN":6.7,"ELEMENTAL_2M_LEN":24.4,"INSUFICIENTE_2M_LEN":68.9,"ADECUADO_2M_MAT":3.8,"ELEMENTAL_2M_MAT":35.1,"INSUFICIENTE_2M_MAT":61.1}},{"rbd":10545,"nombre":"LICEO IND. MIGUEL AYLWIN GAJARDO","comuna":"SAN BERNARDO","matricula":1,"simce":{"4B_LEN":null,"4B_MAT":null,"8B_LEN":null,"8B_MAT":null,"2M_LEN":208.0,"2M_MAT":226.0},"estandares":{"ADECUADO_4B_LEN":null,"ELEMENTAL_4B_LEN":null,"INSUFICIENTE_4B_LEN":null,"ADECUADO_4B_MAT":null,"ELEMENTAL_4B_MAT":null,"INSUFICIENTE_4B_MAT":null,"ADECUADO_8B_LEN":null,"ELEMENTAL_8B_LEN":null,"INSUFICIENTE_8B_LEN":null,"ADECUADO_8B_MAT":null,"ELEMENTAL_8B_MAT":null,"INSUFICIENTE_8B_MAT":null,"ADECUADO_2M_LEN":6.2,"ELEMENTAL_2M_LEN":16.9,"INSUFICIENTE_2M_LEN":76.9,"ADECUADO_2M_MAT":8.9,"ELEMENTAL_2M_MAT":17.9,"INSUFICIENTE_2M_MAT":73.2}},{"rbd":10546,"nombre":"ESCUELA PILAR MOLINER DE NUEZ","comuna":"SAN BERNARDO","matricula":1,"simce":{"4B_LEN":254.0,"4B_MAT":231.0,"8B_LEN":250.0,"8B_MAT":227.0,"2M_LEN":null,"2M_MAT":null},"estandares":{"ADECUADO_4B_LEN":27.3,"ELEMENTAL_4B_LEN":36.4,"INSUFICIENTE_4B_LEN":36.4,"ADECUADO_4B_MAT":8.8,"ELEMENTAL_4B_MAT":23.5,"INSUFICIENTE_4B_MAT":67.6,"ADECUADO_8B_LEN":17.5,"ELEMENTAL_8B_LEN":55.0,"INSUFICIENTE_8B_LEN":27.5,"ADECUADO_8B_MAT":2.3,"ELEMENTAL_8B_MAT":25.0,"INSUFICIENTE_8B_MAT":72.7,"ADECUADO_2M_LEN":null,"ELEMENTAL_2M_LEN":null,"INSUFICIENTE_2M_LEN":null,"ADECUADO_2M_MAT":null,"ELEMENTAL_2M_MAT":null,"INSUFICIENTE_2M_MAT":null}},{"rbd":10547,"nombre":"ESCUELA REPUBLICA DEL BRASIL","comuna":"SAN BERNARDO","matricula":1,"simce":{"4B_LEN":264.0,"4B_MAT":239.0,"8B_LEN":229.0,"8B_MAT":253.0,"2M_LEN":null,"2M_MAT":null},"estandares":{"ADECUADO_4B_LEN":33.3,"ELEMENTAL_4B_LEN":26.7,"INSUFICIENTE_4B_LEN":40.0,"ADECUADO_4B_MAT":7.1,"ELEMENTAL_4B_MAT":28.6,"INSUFICIENTE_4B_MAT":64.3,"ADECUADO_8B_LEN":10.0,"ELEMENTAL_8B_LEN":50.0,"INSUFICIENTE_8B_LEN":40.0,"ADECUADO_8B_MAT":5.6,"ELEMENTAL_8B_MAT":55.6,"INSUFICIENTE_8B_MAT":38.9,"ADECUADO_2M_LEN":null,"ELEMENTAL_2M_LEN":null,"INSUFICIENTE_2M_LEN":null,"ADECUADO_2M_MAT":null,"ELEMENTAL_2M_MAT":null,"INSUFICIENTE_2M_MAT":null}},{"rbd":10548,"nombre":"ESCUELA ISABEL RIQUELME","comuna":"SAN BERNARDO","matricula":1,"simce":{"4B_LEN":261.0,"4B_MAT":215.0,"8B_LEN":230.0,"8B_MAT":230.0,"2M_LEN":null,"2M_MAT":null},"estandares":{"ADECUADO_4B_LEN":35.0,"ELEMENTAL_4B_LEN":30.0,"INSUFICIENTE_4B_LEN":35.0,"ADECUADO_4B_MAT":5.0,"ELEMENTAL_4B_MAT":10.0,"INSUFICIENTE_4B_MAT":85.0,"ADECUADO_8B_LEN":13.6,"ELEMENTAL_8B_LEN":31.8,"INSUFICIENTE_8B_LEN":54.5,"ADECUADO_8B_MAT":0.0,"ELEMENTAL_8B_MAT":31.8,"INSUFICIENTE_8B_MAT":68.2,"ADECUADO_2M_LEN":null,"ELEMENTAL_2M_LEN":null,"INSUFICIENTE_2M_LEN":null,"ADECUADO_2M_MAT":null,"ELEMENTAL_2M_MAT":null,"INSUFICIENTE_2M_MAT":null}},{"rbd":10550,"nombre":"ESCUELA L.GRAL. BERNARDO O´HIGGINS","comuna":"SAN BERNARDO","matricula":1,"simce":{"4B_LEN":242.0,"4B_MAT":229.0,"8B_LEN":208.0,"8B_MAT":235.0,"2M_LEN":null,"2M_MAT":null},"estandares":{"ADECUADO_4B_LEN":22.2,"ELEMENTAL_4B_LEN":27.8,"INSUFICIENTE_4B_LEN":50.0,"ADECUADO_4B_MAT":5.6,"ELEMENTAL_4B_MAT":27.8,"INSUFICIENTE_4B_MAT":66.7,"ADECUADO_8B_LEN":4.5,"ELEMENTAL_8B_LEN":31.8,"INSUFICIENTE_8B_LEN":63.6,"ADECUADO_8B_MAT":0.0,"ELEMENTAL_8B_MAT":40.0,"INSUFICIENTE_8B_MAT":60.0,"ADECUADO_2M_LEN":null,"ELEMENTAL_2M_LEN":null,"INSUFICIENTE_2M_LEN":null,"ADECUADO_2M_MAT":null,"ELEMENTAL_2M_MAT":null,"INSUFICIENTE_2M_MAT":null}},{"rbd":10551,"nombre":"LICEO POLIV. LUCILA GODOY ALCAYAGA","comuna":"SAN BERNARDO","matricula":1,"simce":{"4B_LEN":null,"4B_MAT":null,"8B_LEN":null,"8B_MAT":216.0,"2M_LEN":202.0,"2M_MAT":207.0},"estandares":{"ADECUADO_4B_LEN":null,"ELEMENTAL_4B_LEN":null,"INSUFICIENTE_4B_LEN":null,"ADECUADO_4B_MAT":null,"ELEMENTAL_4B_MAT":null,"INSUFICIENTE_4B_MAT":null,"ADECUADO_8B_LEN":null,"ELEMENTAL_8B_LEN":null,"INSUFICIENTE_8B_LEN":null,"ADECUADO_8B_MAT":0.0,"ELEMENTAL_8B_MAT":12.5,"INSUFICIENTE_8B_MAT":87.5,"ADECUADO_2M_LEN":2.4,"ELEMENTAL_2M_LEN":9.5,"INSUFICIENTE_2M_LEN":88.1,"ADECUADO_2M_MAT":0.0,"ELEMENTAL_2M_MAT":9.1,"INSUFICIENTE_2M_MAT":90.9}},{"rbd":10554,"nombre":"ESCUELA GENERAL RENE SCHNEIDER CHEREAU","comuna":"SAN BERNARDO","matricula":1,"simce":{"4B_LEN":277.0,"4B_MAT":235.0,"8B_LEN":206.0,"8B_MAT":217.0,"2M_LEN":null,"2M_MAT":null},"estandares":{"ADECUADO_4B_LEN":40.0,"ELEMENTAL_4B_LEN":40.0,"INSUFICIENTE_4B_LEN":20.0,"ADECUADO_4B_MAT":9.1,"ELEMENTAL_4B_MAT":27.3,"INSUFICIENTE_4B_MAT":63.6,"ADECUADO_8B_LEN":5.0,"ELEMENTAL_8B_LEN":20.0,"INSUFICIENTE_8B_LEN":75.0,"ADECUADO_8B_MAT":5.9,"ELEMENTAL_8B_MAT":17.6,"INSUFICIENTE_8B_MAT":76.5,"ADECUADO_2M_LEN":null,"ELEMENTAL_2M_LEN":null,"INSUFICIENTE_2M_LEN":null,"ADECUADO_2M_MAT":null,"ELEMENTAL_2M_MAT":null,"INSUFICIENTE_2M_MAT":null}},{"rbd":10556,"nombre":"ESCUELA ALEMANIA","comuna":"SAN BERNARDO","matricula":1,"simce":{"4B_LEN":265.0,"4B_MAT":256.0,"8B_LEN":228.0,"8B_MAT":239.0,"2M_LEN":null,"2M_MAT":null},"estandares":{"ADECUADO_4B_LEN":48.0,"ELEMENTAL_4B_LEN":8.0,"INSUFICIENTE_4B_LEN":44.0,"ADECUADO_4B_MAT":23.1,"ELEMENTAL_4B_MAT":34.6,"INSUFICIENTE_4B_MAT":42.3,"ADECUADO_8B_LEN":0.0,"ELEMENTAL_8B_LEN":58.8,"INSUFICIENTE_8B_LEN":41.2,"ADECUADO_8B_MAT":0.0,"ELEMENTAL_8B_MAT":42.1,"INSUFICIENTE_8B_MAT":57.9,"ADECUADO_2M_LEN":null,"ELEMENTAL_2M_LEN":null,"INSUFICIENTE_2M_LEN":null,"ADECUADO_2M_MAT":null,"ELEMENTAL_2M_MAT":null,"INSUFICIENTE_2M_MAT":null}},{"rbd":10558,"nombre":"ESCUELA REPUBLICA DE LOS EE.UU. DE AMERICA","comuna":"SAN BERNARDO","matricula":1,"simce":{"4B_LEN":235.0,"4B_MAT":256.0,"8B_LEN":174.0,"8B_MAT":205.0,"2M_LEN":null,"2M_MAT":null},"estandares":{"ADECUADO_4B_LEN":11.1,"ELEMENTAL_4B_LEN":29.6,"INSUFICIENTE_4B_LEN":59.3,"ADECUADO_4B_MAT":22.2,"ELEMENTAL_4B_MAT":40.7,"INSUFICIENTE_4B_MAT":37.0,"ADECUADO_8B_LEN":0.0,"ELEMENTAL_8B_LEN":13.3,"INSUFICIENTE_8B_LEN":86.7,"ADECUADO_8B_MAT":0.0,"ELEMENTAL_8B_MAT":20.0,"INSUFICIENTE_8B_MAT":80.0,"ADECUADO_2M_LEN":null,"ELEMENTAL_2M_LEN":null,"INSUFICIENTE_2M_LEN":null,"ADECUADO_2M_MAT":null,"ELEMENTAL_2M_MAT":null,"INSUFICIENTE_2M_MAT":null}},{"rbd":10560,"nombre":"ESCUELA JAVIERA CARRERA VERDUGO","comuna":"SAN BERNARDO","matricula":1,"simce":{"4B_LEN":274.0,"4B_MAT":265.0,"8B_LEN":219.0,"8B_MAT":229.0,"2M_LEN":null,"2M_MAT":null},"estandares":{"ADECUADO_4B_LEN":42.1,"ELEMENTAL_4B_LEN":31.6,"INSUFICIENTE_4B_LEN":26.3,"ADECUADO_4B_MAT":10.5,"ELEMENTAL_4B_MAT":68.4,"INSUFICIENTE_4B_MAT":21.1,"ADECUADO_8B_LEN":20.0,"ELEMENTAL_8B_LEN":20.0,"INSUFICIENTE_8B_LEN":60.0,"ADECUADO_8B_MAT":0.0,"ELEMENTAL_8B_MAT":27.3,"INSUFICIENTE_8B_MAT":72.7,"ADECUADO_2M_LEN":null,"ELEMENTAL_2M_LEN":null,"INSUFICIENTE_2M_LEN":null,"ADECUADO_2M_MAT":null,"ELEMENTAL_2M_MAT":null,"INSUFICIENTE_2M_MAT":null}},{"rbd":10563,"nombre":"ESCUELA MANUEL MAGALLANES MOURE","comuna":"SAN BERNARDO","matricula":1,"simce":{"4B_LEN":322.0,"4B_MAT":293.0,"8B_LEN":220.0,"8B_MAT":249.0,"2M_LEN":null,"2M_MAT":null},"estandares":{"ADECUADO_4B_LEN":86.7,"ELEMENTAL_4B_LEN":13.3,"INSUFICIENTE_4B_LEN":0.0,"ADECUADO_4B_MAT":50.0,"ELEMENTAL_4B_MAT":44.4,"INSUFICIENTE_4B_MAT":5.6,"ADECUADO_8B_LEN":9.5,"ELEMENTAL_8B_LEN":33.3,"INSUFICIENTE_8B_LEN":57.1,"ADECUADO_8B_MAT":10.5,"ELEMENTAL_8B_MAT":42.1,"INSUFICIENTE_8B_MAT":47.4,"ADECUADO_2M_LEN":null,"ELEMENTAL_2M_LEN":null,"INSUFICIENTE_2M_LEN":null,"ADECUADO_2M_MAT":null,"ELEMENTAL_2M_MAT":null,"INSUFICIENTE_2M_MAT":null}},{"rbd":10564,"nombre":"ESCUELA REPUBLICA DEL PERU","comuna":"SAN BERNARDO","matricula":1,"simce":{"4B_LEN":271.0,"4B_MAT":257.0,"8B_LEN":229.0,"8B_MAT":230.0,"2M_LEN":null,"2M_MAT":null},"estandares":{"ADECUADO_4B_LEN":null,"ELEMENTAL_4B_LEN":null,"INSUFICIENTE_4B_LEN":null,"ADECUADO_4B_MAT":null,"ELEMENTAL_4B_MAT":null,"INSUFICIENTE_4B_MAT":null,"ADECUADO_8B_LEN":null,"ELEMENTAL_8B_LEN":null,"INSUFICIENTE_8B_LEN":null,"ADECUADO_8B_MAT":null,"ELEMENTAL_8B_MAT":null,"INSUFICIENTE_8B_MAT":null,"ADECUADO_2M_LEN":null,"ELEMENTAL_2M_LEN":null,"INSUFICIENTE_2M_LEN":null,"ADECUADO_2M_MAT":null,"ELEMENTAL_2M_MAT":null,"INSUFICIENTE_2M_MAT":null}},{"rbd":10565,"nombre":"ESCUELA DIEGO PORTALES","comuna":"SAN BERNARDO","matricula":1,"simce":{"4B_LEN":261.0,"4B_MAT":255.0,"8B_LEN":203.0,"8B_MAT":224.0,"2M_LEN":null,"2M_MAT":null},"estandares":{"ADECUADO_4B_LEN":39.7,"ELEMENTAL_4B_LEN":17.6,"INSUFICIENTE_4B_LEN":42.6,"ADECUADO_4B_MAT":16.2,"ELEMENTAL_4B_MAT":42.6,"INSUFICIENTE_4B_MAT":41.2,"ADECUADO_8B_LEN":1.5,"ELEMENTAL_8B_LEN":26.2,"INSUFICIENTE_8B_LEN":72.3,"ADECUADO_8B_MAT":0.0,"ELEMENTAL_8B_MAT":29.6,"INSUFICIENTE_8B_MAT":70.4,"ADECUADO_2M_LEN":null,"ELEMENTAL_2M_LEN":null,"INSUFICIENTE_2M_LEN":null,"ADECUADO_2M_MAT":null,"ELEMENTAL_2M_MAT":null,"INSUFICIENTE_2M_MAT":null}},{"rbd":10567,"nombre":"ESCUELA MAHUIDA","comuna":"SAN BERNARDO","matricula":1,"simce":{"4B_LEN":257.0,"4B_MAT":248.0,"8B_LEN":221.0,"8B_MAT":239.0,"2M_LEN":null,"2M_MAT":null},"estandares":{"ADECUADO_4B_LEN":28.6,"ELEMENTAL_4B_LEN":28.6,"INSUFICIENTE_4B_LEN":42.9,"ADECUADO_4B_MAT":0.0,"ELEMENTAL_4B_MAT":58.3,"INSUFICIENTE_4B_MAT":41.7,"ADECUADO_8B_LEN":10.0,"ELEMENTAL_8B_LEN":35.0,"INSUFICIENTE_8B_LEN":55.0,"ADECUADO_8B_MAT":0.0,"ELEMENTAL_8B_MAT":33.3,"INSUFICIENTE_8B_MAT":66.7,"ADECUADO_2M_LEN":null,"ELEMENTAL_2M_LEN":null,"INSUFICIENTE_2M_LEN":null,"ADECUADO_2M_MAT":null,"ELEMENTAL_2M_MAT":null,"INSUFICIENTE_2M_MAT":null}},{"rbd":10569,"nombre":"LICEO NUEVO PORVENIR","comuna":"SAN BERNARDO","matricula":1,"simce":{"4B_LEN":262.0,"4B_MAT":245.0,"8B_LEN":215.0,"8B_MAT":234.0,"2M_LEN":null,"2M_MAT":null},"estandares":{"ADECUADO_4B_LEN":41.2,"ELEMENTAL_4B_LEN":11.8,"INSUFICIENTE_4B_LEN":47.1,"ADECUADO_4B_MAT":11.8,"ELEMENTAL_4B_MAT":35.3,"INSUFICIENTE_4B_MAT":52.9,"ADECUADO_8B_LEN":5.6,"ELEMENTAL_8B_LEN":38.9,"INSUFICIENTE_8B_LEN":55.6,"ADECUADO_8B_MAT":5.3,"ELEMENTAL_8B_MAT":31.6,"INSUFICIENTE_8B_MAT":63.2,"ADECUADO_2M_LEN":null,"ELEMENTAL_2M_LEN":null,"INSUFICIENTE_2M_LEN":null,"ADECUADO_2M_MAT":null,"ELEMENTAL_2M_MAT":null,"INSUFICIENTE_2M_MAT":null}},{"rbd":10570,"nombre":"ESCUELA BASICA DR LUIS SEPULVEDA SALVATI","comuna":"SAN BERNARDO","matricula":1,"simce":{"4B_LEN":260.0,"4B_MAT":224.0,"8B_LEN":213.0,"8B_MAT":238.0,"2M_LEN":null,"2M_MAT":null},"estandares":{"ADECUADO_4B_LEN":33.3,"ELEMENTAL_4B_LEN":36.7,"INSUFICIENTE_4B_LEN":30.0,"ADECUADO_4B_MAT":12.1,"ELEMENTAL_4B_MAT":21.2,"INSUFICIENTE_4B_MAT":66.7,"ADECUADO_8B_LEN":4.5,"ELEMENTAL_8B_LEN":40.9,"INSUFICIENTE_8B_LEN":54.5,"ADECUADO_8B_MAT":0.0,"ELEMENTAL_8B_MAT":38.1,"INSUFICIENTE_8B_MAT":61.9,"ADECUADO_2M_LEN":null,"ELEMENTAL_2M_LEN":null,"INSUFICIENTE_2M_LEN":null,"ADECUADO_2M_MAT":null,"ELEMENTAL_2M_MAT":null,"INSUFICIENTE_2M_MAT":null}},{"rbd":10571,"nombre":"ESCUELA ESCRITORA  MARCELA PAZ","comuna":"SAN BERNARDO","matricula":1,"simce":{"4B_LEN":262.0,"4B_MAT":255.0,"8B_LEN":198.0,"8B_MAT":239.0,"2M_LEN":null,"2M_MAT":null},"estandares":{"ADECUADO_4B_LEN":40.0,"ELEMENTAL_4B_LEN":26.7,"INSUFICIENTE_4B_LEN":33.3,"ADECUADO_4B_MAT":6.3,"ELEMENTAL_4B_MAT":81.3,"INSUFICIENTE_4B_MAT":12.5,"ADECUADO_8B_LEN":4.7,"ELEMENTAL_8B_LEN":11.6,"INSUFICIENTE_8B_LEN":83.7,"ADECUADO_8B_MAT":11.4,"ELEMENTAL_8B_MAT":34.1,"INSUFICIENTE_8B_MAT":54.5,"ADECUADO_2M_LEN":null,"ELEMENTAL_2M_LEN":null,"INSUFICIENTE_2M_LEN":null,"ADECUADO_2M_MAT":null,"ELEMENTAL_2M_MAT":null,"INSUFICIENTE_2M_MAT":null}},{"rbd":10574,"nombre":"ESCUELA ESPANA","comuna":"SAN BERNARDO","matricula":1,"simce":{"4B_LEN":249.0,"4B_MAT":238.0,"8B_LEN":242.0,"8B_MAT":243.0,"2M_LEN":null,"2M_MAT":null},"estandares":{"ADECUADO_4B_LEN":null,"ELEMENTAL_4B_LEN":null,"INSUFICIENTE_4B_LEN":null,"ADECUADO_4B_MAT":null,"ELEMENTAL_4B_MAT":null,"INSUFICIENTE_4B_MAT":null,"ADECUADO_8B_LEN":27.3,"ELEMENTAL_8B_LEN":36.4,"INSUFICIENTE_8B_LEN":36.4,"ADECUADO_8B_MAT":9.1,"ELEMENTAL_8B_MAT":45.5,"INSUFICIENTE_8B_MAT":45.5,"ADECUADO_2M_LEN":null,"ELEMENTAL_2M_LEN":null,"INSUFICIENTE_2M_LEN":null,"ADECUADO_2M_MAT":null,"ELEMENTAL_2M_MAT":null,"INSUFICIENTE_2M_MAT":null}},{"rbd":10576,"nombre":"ESCUELA BÁSICA BRISAS DE CHENA","comuna":"SAN BERNARDO","matricula":1,"simce":{"4B_LEN":221.0,"4B_MAT":232.0,"8B_LEN":207.0,"8B_MAT":229.0,"2M_LEN":null,"2M_MAT":null},"estandares":{"ADECUADO_4B_LEN":12.5,"ELEMENTAL_4B_LEN":18.8,"INSUFICIENTE_4B_LEN":68.8,"ADECUADO_4B_MAT":6.3,"ELEMENTAL_4B_MAT":31.3,"INSUFICIENTE_4B_MAT":62.5,"ADECUADO_8B_LEN":5.3,"ELEMENTAL_8B_LEN":26.3,"INSUFICIENTE_8B_LEN":68.4,"ADECUADO_8B_MAT":15.8,"ELEMENTAL_8B_MAT":21.1,"INSUFICIENTE_8B_MAT":63.2,"ADECUADO_2M_LEN":null,"ELEMENTAL_2M_LEN":null,"INSUFICIENTE_2M_LEN":null,"ADECUADO_2M_MAT":null,"ELEMENTAL_2M_MAT":null,"INSUFICIENTE_2M_MAT":null}},{"rbd":10577,"nombre":"ESCUELA DE EDUCACION DIFERENCIAL","comuna":"SAN BERNARDO","matricula":1,"simce":{"4B_LEN":null,"4B_MAT":null,"8B_LEN":null,"8B_MAT":null,"2M_LEN":null,"2M_MAT":null},"estandares":{"ADECUADO_4B_LEN":null,"ELEMENTAL_4B_LEN":null,"INSUFICIENTE_4B_LEN":null,"ADECUADO_4B_MAT":null,"ELEMENTAL_4B_MAT":null,"INSUFICIENTE_4B_MAT":null,"ADECUADO_8B_LEN":null,"ELEMENTAL_8B_LEN":null,"INSUFICIENTE_8B_LEN":null,"ADECUADO_8B_MAT":null,"ELEMENTAL_8B_MAT":null,"INSUFICIENTE_8B_MAT":null,"ADECUADO_2M_LEN":null,"ELEMENTAL_2M_LEN":null,"INSUFICIENTE_2M_LEN":null,"ADECUADO_2M_MAT":null,"ELEMENTAL_2M_MAT":null,"INSUFICIENTE_2M_MAT":null}},{"rbd":10578,"nombre":"ESCUELA STA. TERESA DE LOS MORROS","comuna":"SAN BERNARDO","matricula":1,"simce":{"4B_LEN":223.0,"4B_MAT":202.0,"8B_LEN":183.0,"8B_MAT":209.0,"2M_LEN":null,"2M_MAT":null},"estandares":{"ADECUADO_4B_LEN":11.8,"ELEMENTAL_4B_LEN":19.6,"INSUFICIENTE_4B_LEN":68.6,"ADECUADO_4B_MAT":0.0,"ELEMENTAL_4B_MAT":15.7,"INSUFICIENTE_4B_MAT":84.3,"ADECUADO_8B_LEN":2.0,"ELEMENTAL_8B_LEN":14.0,"INSUFICIENTE_8B_LEN":84.0,"ADECUADO_8B_MAT":1.9,"ELEMENTAL_8B_MAT":11.1,"INSUFICIENTE_8B_MAT":87.0,"ADECUADO_2M_LEN":null,"ELEMENTAL_2M_LEN":null,"INSUFICIENTE_2M_LEN":null,"ADECUADO_2M_MAT":null,"ELEMENTAL_2M_MAT":null,"INSUFICIENTE_2M_MAT":null}},{"rbd":10579,"nombre":"ESCUELA JOSE NUEZ MARTIN","comuna":"SAN BERNARDO","matricula":1,"simce":{"4B_LEN":250.0,"4B_MAT":229.0,"8B_LEN":225.0,"8B_MAT":248.0,"2M_LEN":null,"2M_MAT":null},"estandares":{"ADECUADO_4B_LEN":26.9,"ELEMENTAL_4B_LEN":34.6,"INSUFICIENTE_4B_LEN":38.5,"ADECUADO_4B_MAT":4.0,"ELEMENTAL_4B_MAT":34.0,"INSUFICIENTE_4B_MAT":62.0,"ADECUADO_8B_LEN":8.7,"ELEMENTAL_8B_LEN":39.1,"INSUFICIENTE_8B_LEN":52.2,"ADECUADO_8B_MAT":9.1,"ELEMENTAL_8B_MAT":40.9,"INSUFICIENTE_8B_MAT":50.0,"ADECUADO_2M_LEN":null,"ELEMENTAL_2M_LEN":null,"INSUFICIENTE_2M_LEN":null,"ADECUADO_2M_MAT":null,"ELEMENTAL_2M_MAT":null,"INSUFICIENTE_2M_MAT":null}},{"rbd":10580,"nombre":"ESCUELA ABRAHAM LINCOLN","comuna":"SAN BERNARDO","matricula":1,"simce":{"4B_LEN":252.0,"4B_MAT":247.0,"8B_LEN":220.0,"8B_MAT":228.0,"2M_LEN":null,"2M_MAT":null},"estandares":{"ADECUADO_4B_LEN":31.3,"ELEMENTAL_4B_LEN":18.8,"INSUFICIENTE_4B_LEN":50.0,"ADECUADO_4B_MAT":6.9,"ELEMENTAL_4B_MAT":44.8,"INSUFICIENTE_4B_MAT":48.3,"ADECUADO_8B_LEN":8.0,"ELEMENTAL_8B_LEN":36.0,"INSUFICIENTE_8B_LEN":56.0,"ADECUADO_8B_MAT":3.6,"ELEMENTAL_8B_MAT":35.7,"INSUFICIENTE_8B_MAT":60.7,"ADECUADO_2M_LEN":null,"ELEMENTAL_2M_LEN":null,"INSUFICIENTE_2M_LEN":null,"ADECUADO_2M_MAT":null,"ELEMENTAL_2M_MAT":null,"INSUFICIENTE_2M_MAT":null}},{"rbd":10581,"nombre":"ESCUELA BASICA ANTUPILLAN","comuna":"SAN BERNARDO","matricula":1,"simce":{"4B_LEN":269.0,"4B_MAT":253.0,"8B_LEN":216.0,"8B_MAT":241.0,"2M_LEN":null,"2M_MAT":null},"estandares":{"ADECUADO_4B_LEN":44.4,"ELEMENTAL_4B_LEN":14.8,"INSUFICIENTE_4B_LEN":40.7,"ADECUADO_4B_MAT":14.8,"ELEMENTAL_4B_MAT":44.4,"INSUFICIENTE_4B_MAT":40.7,"ADECUADO_8B_LEN":8.3,"ELEMENTAL_8B_LEN":30.6,"INSUFICIENTE_8B_LEN":61.1,"ADECUADO_8B_MAT":8.1,"ELEMENTAL_8B_MAT":35.1,"INSUFICIENTE_8B_MAT":56.8,"ADECUADO_2M_LEN":null,"ELEMENTAL_2M_LEN":null,"INSUFICIENTE_2M_LEN":null,"ADECUADO_2M_MAT":null,"ELEMENTAL_2M_MAT":null,"INSUFICIENTE_2M_MAT":null}},{"rbd":10584,"nombre":"LICEO DE ADULTOS PUCARA DE CHENA","comuna":"SAN BERNARDO","matricula":1,"simce":{"4B_LEN":null,"4B_MAT":null,"8B_LEN":null,"8B_MAT":null,"2M_LEN":null,"2M_MAT":null},"estandares":{"ADECUADO_4B_LEN":null,"ELEMENTAL_4B_LEN":null,"INSUFICIENTE_4B_LEN":null,"ADECUADO_4B_MAT":null,"ELEMENTAL_4B_MAT":null,"INSUFICIENTE_4B_MAT":null,"ADECUADO_8B_LEN":null,"ELEMENTAL_8B_LEN":null,"INSUFICIENTE_8B_LEN":null,"ADECUADO_8B_MAT":null,"ELEMENTAL_8B_MAT":null,"INSUFICIENTE_8B_MAT":null,"ADECUADO_2M_LEN":null,"ELEMENTAL_2M_LEN":null,"INSUFICIENTE_2M_LEN":null,"ADECUADO_2M_MAT":null,"ELEMENTAL_2M_MAT":null,"INSUFICIENTE_2M_MAT":null}},{"rbd":10586,"nombre":"ESCUELA ELEODORO YANEZ PONCE DE LEON","comuna":"SAN BERNARDO","matricula":1,"simce":{"4B_LEN":261.0,"4B_MAT":244.0,"8B_LEN":223.0,"8B_MAT":240.0,"2M_LEN":null,"2M_MAT":null},"estandares":{"ADECUADO_4B_LEN":43.1,"ELEMENTAL_4B_LEN":21.6,"INSUFICIENTE_4B_LEN":35.3,"ADECUADO_4B_MAT":8.3,"ELEMENTAL_4B_MAT":39.6,"INSUFICIENTE_4B_MAT":52.1,"ADECUADO_8B_LEN":9.1,"ELEMENTAL_8B_LEN":31.8,"INSUFICIENTE_8B_LEN":59.1,"ADECUADO_8B_MAT":6.7,"ELEMENTAL_8B_MAT":35.6,"INSUFICIENTE_8B_MAT":57.8,"ADECUADO_2M_LEN":null,"ELEMENTAL_2M_LEN":null,"INSUFICIENTE_2M_LEN":null,"ADECUADO_2M_MAT":null,"ELEMENTAL_2M_MAT":null,"INSUFICIENTE_2M_MAT":null}},{"rbd":10588,"nombre":"LICEO CARDENAL ANTONIO SAMORE","comuna":"SAN BERNARDO","matricula":1,"simce":{"4B_LEN":249.0,"4B_MAT":248.0,"8B_LEN":214.0,"8B_MAT":248.0,"2M_LEN":234.0,"2M_MAT":231.0},"estandares":{"ADECUADO_4B_LEN":39.3,"ELEMENTAL_4B_LEN":14.3,"INSUFICIENTE_4B_LEN":46.4,"ADECUADO_4B_MAT":6.9,"ELEMENTAL_4B_MAT":48.3,"INSUFICIENTE_4B_MAT":44.8,"ADECUADO_8B_LEN":9.7,"ELEMENTAL_8B_LEN":29.0,"INSUFICIENTE_8B_LEN":61.3,"ADECUADO_8B_MAT":6.5,"ELEMENTAL_8B_MAT":45.2,"INSUFICIENTE_8B_MAT":48.4,"ADECUADO_2M_LEN":3.3,"ELEMENTAL_2M_LEN":36.7,"INSUFICIENTE_2M_LEN":60.0,"ADECUADO_2M_MAT":6.9,"ELEMENTAL_2M_MAT":27.6,"INSUFICIENTE_2M_MAT":65.5}},{"rbd":10589,"nombre":"ESCUELA HARAS LOS CONDORES","comuna":"SAN BERNARDO","matricula":1,"simce":{"4B_LEN":258.0,"4B_MAT":264.0,"8B_LEN":236.0,"8B_MAT":251.0,"2M_LEN":null,"2M_MAT":null},"estandares":{"ADECUADO_4B_LEN":26.3,"ELEMENTAL_4B_LEN":42.1,"INSUFICIENTE_4B_LEN":31.6,"ADECUADO_4B_MAT":23.7,"ELEMENTAL_4B_MAT":39.5,"INSUFICIENTE_4B_MAT":36.8,"ADECUADO_8B_LEN":12.2,"ELEMENTAL_8B_LEN":43.9,"INSUFICIENTE_8B_LEN":43.9,"ADECUADO_8B_MAT":10.3,"ELEMENTAL_8B_MAT":38.5,"INSUFICIENTE_8B_MAT":51.3,"ADECUADO_2M_LEN":null,"ELEMENTAL_2M_LEN":null,"INSUFICIENTE_2M_LEN":null,"ADECUADO_2M_MAT":null,"ELEMENTAL_2M_MAT":null,"INSUFICIENTE_2M_MAT":null}},{"rbd":10590,"nombre":"ESCUELA TERESA GARCIA HUIDOBRO","comuna":"SAN BERNARDO","matricula":1,"simce":{"4B_LEN":247.0,"4B_MAT":243.0,"8B_LEN":229.0,"8B_MAT":242.0,"2M_LEN":null,"2M_MAT":null},"estandares":{"ADECUADO_4B_LEN":null,"ELEMENTAL_4B_LEN":null,"INSUFICIENTE_4B_LEN":null,"ADECUADO_4B_MAT":null,"ELEMENTAL_4B_MAT":null,"INSUFICIENTE_4B_MAT":null,"ADECUADO_8B_LEN":0.0,"ELEMENTAL_8B_LEN":54.5,"INSUFICIENTE_8B_LEN":45.5,"ADECUADO_8B_MAT":9.1,"ELEMENTAL_8B_MAT":36.4,"INSUFICIENTE_8B_MAT":54.5,"ADECUADO_2M_LEN":null,"ELEMENTAL_2M_LEN":null,"INSUFICIENTE_2M_LEN":null,"ADECUADO_2M_MAT":null,"ELEMENTAL_2M_MAT":null,"INSUFICIENTE_2M_MAT":null}},{"rbd":10592,"nombre":"LICEO CLARA SOLOVERA","comuna":"SAN BERNARDO","matricula":1,"simce":{"4B_LEN":220.0,"4B_MAT":195.0,"8B_LEN":216.0,"8B_MAT":214.0,"2M_LEN":225.0,"2M_MAT":214.0},"estandares":{"ADECUADO_4B_LEN":6.7,"ELEMENTAL_4B_LEN":13.3,"INSUFICIENTE_4B_LEN":80.0,"ADECUADO_4B_MAT":3.2,"ELEMENTAL_4B_MAT":6.5,"INSUFICIENTE_4B_MAT":90.3,"ADECUADO_8B_LEN":9.7,"ELEMENTAL_8B_LEN":25.8,"INSUFICIENTE_8B_LEN":64.5,"ADECUADO_8B_MAT":3.7,"ELEMENTAL_8B_MAT":11.1,"INSUFICIENTE_8B_MAT":85.2,"ADECUADO_2M_LEN":9.2,"ELEMENTAL_2M_LEN":24.6,"INSUFICIENTE_2M_LEN":66.2,"ADECUADO_2M_MAT":0.0,"ELEMENTAL_2M_MAT":16.1,"INSUFICIENTE_2M_MAT":83.9}},{"rbd":12079,"nombre":"HERNAN MERINO CORREA","comuna":"SAN BERNARDO","matricula":1,"simce":{"4B_LEN":249.0,"4B_MAT":243.0,"8B_LEN":218.0,"8B_MAT":241.0,"2M_LEN":null,"2M_MAT":null},"estandares":{"ADECUADO_4B_LEN":18.4,"ELEMENTAL_4B_LEN":38.8,"INSUFICIENTE_4B_LEN":42.9,"ADECUADO_4B_MAT":8.7,"ELEMENTAL_4B_MAT":39.1,"INSUFICIENTE_4B_MAT":52.2,"ADECUADO_8B_LEN":7.1,"ELEMENTAL_8B_LEN":39.3,"INSUFICIENTE_8B_LEN":53.6,"ADECUADO_8B_MAT":7.7,"ELEMENTAL_8B_MAT":34.6,"INSUFICIENTE_8B_MAT":57.7,"ADECUADO_2M_LEN":null,"ELEMENTAL_2M_LEN":null,"INSUFICIENTE_2M_LEN":null,"ADECUADO_2M_MAT":null,"ELEMENTAL_2M_MAT":null,"INSUFICIENTE_2M_MAT":null}},{"rbd":24444,"nombre":"LICEO INDUSTRIAL HARDWARE","comuna":"SAN BERNARDO","matricula":1,"simce":{"4B_LEN":null,"4B_MAT":null,"8B_LEN":null,"8B_MAT":null,"2M_LEN":215.0,"2M_MAT":205.0},"estandares":{"ADECUADO_4B_LEN":null,"ELEMENTAL_4B_LEN":null,"INSUFICIENTE_4B_LEN":null,"ADECUADO_4B_MAT":null,"ELEMENTAL_4B_MAT":null,"INSUFICIENTE_4B_MAT":null,"ADECUADO_8B_LEN":null,"ELEMENTAL_8B_LEN":null,"INSUFICIENTE_8B_LEN":null,"ADECUADO_8B_MAT":null,"ELEMENTAL_8B_MAT":null,"INSUFICIENTE_8B_MAT":null,"ADECUADO_2M_LEN":3.3,"ELEMENTAL_2M_LEN":23.3,"INSUFICIENTE_2M_LEN":73.3,"ADECUADO_2M_MAT":5.1,"ELEMENTAL_2M_MAT":5.1,"INSUFICIENTE_2M_MAT":89.8}},{"rbd":24654,"nombre":"ESCUELA BASICA CINCO PINOS","comuna":"SAN BERNARDO","matricula":1,"simce":{"4B_LEN":273.0,"4B_MAT":247.0,"8B_LEN":199.0,"8B_MAT":217.0,"2M_LEN":null,"2M_MAT":null},"estandares":{"ADECUADO_4B_LEN":36.4,"ELEMENTAL_4B_LEN":45.5,"INSUFICIENTE_4B_LEN":18.2,"ADECUADO_4B_MAT":27.3,"ELEMENTAL_4B_MAT":27.3,"INSUFICIENTE_4B_MAT":45.5,"ADECUADO_8B_LEN":null,"ELEMENTAL_8B_LEN":null,"INSUFICIENTE_8B_LEN":null,"ADECUADO_8B_MAT":null,"ELEMENTAL_8B_MAT":null,"INSUFICIENTE_8B_MAT":null,"ADECUADO_2M_LEN":null,"ELEMENTAL_2M_LEN":null,"INSUFICIENTE_2M_LEN":null,"ADECUADO_2M_MAT":null,"ELEMENTAL_2M_MAT":null,"INSUFICIENTE_2M_MAT":null}},{"rbd":25009,"nombre":"LICEO VALLE DE LLUTA","comuna":"SAN BERNARDO","matricula":1,"simce":{"4B_LEN":211.0,"4B_MAT":204.0,"8B_LEN":205.0,"8B_MAT":206.0,"2M_LEN":null,"2M_MAT":null},"estandares":{"ADECUADO_4B_LEN":8.6,"ELEMENTAL_4B_LEN":11.4,"INSUFICIENTE_4B_LEN":80.0,"ADECUADO_4B_MAT":0.0,"ELEMENTAL_4B_MAT":22.6,"INSUFICIENTE_4B_MAT":77.4,"ADECUADO_8B_LEN":2.7,"ELEMENTAL_8B_LEN":29.7,"INSUFICIENTE_8B_LEN":67.6,"ADECUADO_8B_MAT":0.0,"ELEMENTAL_8B_MAT":13.2,"INSUFICIENTE_8B_MAT":86.8,"ADECUADO_2M_LEN":null,"ELEMENTAL_2M_LEN":null,"INSUFICIENTE_2M_LEN":null,"ADECUADO_2M_MAT":null,"ELEMENTAL_2M_MAT":null,"INSUFICIENTE_2M_MAT":null}},{"rbd":25078,"nombre":"ESCUELA PART.COMANDANTE CARLOS CONDELL","comuna":"SAN BERNARDO","matricula":1,"simce":{"4B_LEN":232.0,"4B_MAT":224.0,"8B_LEN":205.0,"8B_MAT":226.0,"2M_LEN":null,"2M_MAT":null},"estandares":{"ADECUADO_4B_LEN":7.9,"ELEMENTAL_4B_LEN":39.5,"INSUFICIENTE_4B_LEN":52.6,"ADECUADO_4B_MAT":5.3,"ELEMENTAL_4B_MAT":23.7,"INSUFICIENTE_4B_MAT":71.1,"ADECUADO_8B_LEN":2.6,"ELEMENTAL_8B_LEN":18.4,"INSUFICIENTE_8B_LEN":78.9,"ADECUADO_8B_MAT":2.5,"ELEMENTAL_8B_MAT":27.5,"INSUFICIENTE_8B_MAT":70.0,"ADECUADO_2M_LEN":null,"ELEMENTAL_2M_LEN":null,"INSUFICIENTE_2M_LEN":null,"ADECUADO_2M_MAT":null,"ELEMENTAL_2M_MAT":null,"INSUFICIENTE_2M_MAT":null}},{"rbd":25698,"nombre":"COLEGIO CORDILLERA DE LOS ANDES","comuna":"SAN BERNARDO","matricula":1,"simce":{"4B_LEN":229.0,"4B_MAT":222.0,"8B_LEN":236.0,"8B_MAT":277.0,"2M_LEN":null,"2M_MAT":null},"estandares":{"ADECUADO_4B_LEN":13.3,"ELEMENTAL_4B_LEN":24.4,"INSUFICIENTE_4B_LEN":62.2,"ADECUADO_4B_MAT":11.4,"ELEMENTAL_4B_MAT":20.5,"INSUFICIENTE_4B_MAT":68.2,"ADECUADO_8B_LEN":17.5,"ELEMENTAL_8B_LEN":42.5,"INSUFICIENTE_8B_LEN":40.0,"ADECUADO_8B_MAT":41.9,"ELEMENTAL_8B_MAT":30.2,"INSUFICIENTE_8B_MAT":27.9,"ADECUADO_2M_LEN":null,"ELEMENTAL_2M_LEN":null,"INSUFICIENTE_2M_LEN":null,"ADECUADO_2M_MAT":null,"ELEMENTAL_2M_MAT":null,"INSUFICIENTE_2M_MAT":null}},{"rbd":25960,"nombre":"CENTRO EDUC. PADRE ALBERTO HURTADO DE SAN BER","comuna":"SAN BERNARDO","matricula":1,"simce":{"4B_LEN":254.0,"4B_MAT":223.0,"8B_LEN":223.0,"8B_MAT":232.0,"2M_LEN":225.0,"2M_MAT":222.0},"estandares":{"ADECUADO_4B_LEN":33.3,"ELEMENTAL_4B_LEN":17.5,"INSUFICIENTE_4B_LEN":49.1,"ADECUADO_4B_MAT":3.4,"ELEMENTAL_4B_MAT":29.3,"INSUFICIENTE_4B_MAT":67.2,"ADECUADO_8B_LEN":7.8,"ELEMENTAL_8B_LEN":46.9,"INSUFICIENTE_8B_LEN":45.3,"ADECUADO_8B_MAT":4.2,"ELEMENTAL_8B_MAT":28.2,"INSUFICIENTE_8B_MAT":67.6,"ADECUADO_2M_LEN":11.5,"ELEMENTAL_2M_LEN":24.6,"INSUFICIENTE_2M_LEN":63.9,"ADECUADO_2M_MAT":10.9,"ELEMENTAL_2M_MAT":7.8,"INSUFICIENTE_2M_MAT":81.3}},{"rbd":31293,"nombre":"LICEO NACIONAL BICENTENARIO DE EXCELENCIA","comuna":"SAN BERNARDO","matricula":1,"simce":{"4B_LEN":null,"4B_MAT":null,"8B_LEN":264.0,"8B_MAT":288.0,"2M_LEN":295.0,"2M_MAT":349.0},"estandares":{"ADECUADO_4B_LEN":null,"ELEMENTAL_4B_LEN":null,"INSUFICIENTE_4B_LEN":null,"ADECUADO_4B_MAT":null,"ELEMENTAL_4B_MAT":null,"INSUFICIENTE_4B_MAT":null,"ADECUADO_8B_LEN":26.2,"ELEMENTAL_8B_LEN":56.9,"INSUFICIENTE_8B_LEN":16.9,"ADECUADO_8B_MAT":38.8,"ELEMENTAL_8B_MAT":52.2,"INSUFICIENTE_8B_MAT":9.0,"ADECUADO_2M_LEN":45.3,"ELEMENTAL_2M_LEN":49.1,"INSUFICIENTE_2M_LEN":5.7,"ADECUADO_2M_MAT":71.2,"ELEMENTAL_2M_MAT":25.0,"INSUFICIENTE_2M_MAT":3.8}}]};
+
+const SLEP = DATA.slep_avgs;
+const establecimientos = DATA.establecimientos;
+let currentEstab = null;
+let chartsRegistry = {};
+
+// ─── SEARCH LOGIC ──────────────────────────────────────────────────
+const searchInput = document.getElementById('search-input');
+const searchResults = document.getElementById('search-results');
+
+searchInput.addEventListener('input', () => {
+  const q = searchInput.value.trim().toLowerCase();
+  if (!q) { searchResults.style.display = 'none'; return; }
+  const matches = establecimientos.filter(e =>
+    e.nombre.toLowerCase().includes(q) || String(e.rbd).includes(q)
+  ).slice(0, 10);
+  if (!matches.length) { searchResults.style.display = 'none'; return; }
+  searchResults.innerHTML = matches.map(e => `
+    <div class="result-item" onclick="loadEstab(${e.rbd})">
+      <div>
+        <div class="result-name">${e.nombre}</div>
+        <div class="result-meta">${e.comuna}</div>
+      </div>
+      <div class="result-meta">RBD ${e.rbd}</div>
+    </div>`).join('');
+  searchResults.style.display = 'block';
+});
+
+document.addEventListener('click', e => {
+  if (!e.target.closest('.search-wrapper')) searchResults.style.display = 'none';
+});
+
+// ─── LOAD ESTABLISHMENT ────────────────────────────────────────────
+function loadEstab(rbd) {
+  currentEstab = establecimientos.find(e => e.rbd === rbd);
+  searchInput.value = currentEstab.nombre;
+  searchResults.style.display = 'none';
+  document.getElementById('welcome').style.display = 'none';
+  document.getElementById('dashboard').style.display = 'block';
+  document.getElementById('btn-pdf').disabled = false;
+  destroyCharts();
+  renderDashboard(currentEstab);
+}
+
+function destroyCharts() {
+  Object.values(chartsRegistry).forEach(c => { try { c.destroy(); } catch(e){} });
+  chartsRegistry = {};
+}
+
+// ─── RENDER ────────────────────────────────────────────────────────
+function renderDashboard(est) {
+  const dash = document.getElementById('dashboard');
+  dash.innerHTML = `
+    ${renderHeader(est)}
+    ${renderKPIs(est)}
+    ${renderSimceCharts(est)}
+    ${renderEstandaresCharts(est)}
+    <div class="dash-footer">
+      SIMCE 2025 — Resultados Preliminares · SLEP Del Pino · Procesado ${new Date().toLocaleDateString('es-CL')}
+    </div>`;
+  initCharts(est);
+}
+
+function renderHeader(est) {
+  return `<div class="estab-header">
+    <div>
+      <div class="estab-name">${est.nombre}</div>
+      <div class="estab-meta">
+        <span class="estab-badge">${est.comuna}</span>
+        <span class="estab-badge rbd">RBD ${est.rbd}</span>
+      </div>
+    </div>
+    <div style="text-align:right;color:#718096;font-size:0.8rem;line-height:1.8">
+      SIMCE 2025<br>Resultados Preliminares
+    </div>
+  </div>`;
+}
+
+function kpiCard(label, val, slepVal) {
+  if (val === null) return `<div class="kpi-card"><div class="kpi-label">${label}</div><div class="kpi-na">Sin datos</div></div>`;
+  const diff = +(val - slepVal).toFixed(1);
+  const cls = diff > 0 ? 'pos' : diff < 0 ? 'neg' : 'neu';
+  const sign = diff > 0 ? '+' : '';
+  return `<div class="kpi-card">
+    <div class="kpi-label">${label}</div>
+    <div class="kpi-value">${val}</div>
+    <div class="kpi-diff ${cls}">${sign}${diff} vs SLEP</div>
+    <div class="kpi-slep">Prom. SLEP: ${slepVal}</div>
+  </div>`;
+}
+
+function renderKPIs(est) {
+  const s = est.simce;
+  return `<div style="margin-bottom:8px">
+    <div class="section-title"><span class="dot"></span>Puntajes Promedio SIMCE 2025</div>
+  </div>
+  <div class="kpi-grid">
+    ${kpiCard('4° Básico Lenguaje', s['4B_LEN'], SLEP.PROM_4B_LEN)}
+    ${kpiCard('4° Básico Matemática', s['4B_MAT'], SLEP.PROM_4B_MAT)}
+    ${kpiCard('8° Básico Lenguaje', s['8B_LEN'], SLEP.PROM_8B_LEN)}
+    ${kpiCard('8° Básico Matemática', s['8B_MAT'], SLEP.PROM_8B_MAT)}
+    ${kpiCard('2° Medio Lenguaje', s['2M_LEN'], SLEP.PROM_2M_LEN)}
+    ${kpiCard('2° Medio Matemática', s['2M_MAT'], SLEP.PROM_2M_MAT)}
+  </div>`;
+}
+
+function renderSimceCharts(est) {
+  const niveles = [
+    {key:'4B', label:'4° Básico'},
+    {key:'8B', label:'8° Básico'},
+    {key:'2M', label:'2° Medio'}
+  ].filter(n => est.simce[n.key+'_LEN'] !== null || est.simce[n.key+'_MAT'] !== null);
+
+  if (!niveles.length) return '';
+
+  const cards = niveles.map(n => `
+    <div class="chart-card">
+      <div class="chart-title">📚 ${n.label}</div>
+      <div class="chart-wrap"><canvas id="simce_${n.key}"></canvas></div>
+    </div>`).join('');
+
+  return `<div style="margin-bottom:8px">
+    <div class="section-title"><span class="dot"></span>Puntajes por Nivel y Asignatura</div>
+  </div>
+  <div class="legend-strip">
+    <div class="leg-item"><div class="leg-dot" style="background:#2563eb"></div>Lenguaje del Establecimiento</div>
+    <div class="leg-item"><div class="leg-dot" style="background:#7c3aed"></div>Matemática del Establecimiento</div>
+    <div class="leg-item"><div class="leg-dot" style="background:#93c5fd"></div>Promedio SLEP Lenguaje</div>
+    <div class="leg-item"><div class="leg-dot" style="background:#c4b5fd"></div>Promedio SLEP Matemática</div>
+  </div>
+  <div class="charts-row" style="grid-template-columns:repeat(${Math.min(niveles.length,3)},1fr)">
+    ${cards}
+  </div>`;
+}
+
+function renderEstandaresCharts(est) {
+  const niveles = ['4B','8B','2M'].map(k => ({key:k, label:k==='4B'?'4° Básico':k==='8B'?'8° Básico':'2° Medio'}));
+  const asigs = [{key:'LEN', label:'Lenguaje'}, {key:'MAT', label:'Matemática'}];
+  let cards = '';
+  let hasAny = false;
+  niveles.forEach(n => {
+    asigs.forEach(a => {
+      const ad = est.estandares[`ADECUADO_${n.key}_${a.key}`];
+      const el = est.estandares[`ELEMENTAL_${n.key}_${a.key}`];
+      const ins = est.estandares[`INSUFICIENTE_${n.key}_${a.key}`];
+      if (ad === null && el === null && ins === null) {
+        cards += `<div class="chart-card">
+          <div class="chart-title">📊 ${n.label} – ${a.label}</div>
+          <div class="no-data"><div class="no-data-icon">—</div><div>Sin información disponible</div></div>
+        </div>`;
+      } else {
+        hasAny = true;
+        cards += `<div class="chart-card">
+          <div class="chart-title">📊 ${n.label} – ${a.label}</div>
+          <div class="chart-wrap"><canvas id="est_${n.key}_${a.key}"></canvas></div>
+        </div>`;
+      }
+    });
+  });
+  if (!hasAny) return '';
+  return `<div style="margin-bottom:8px">
+    <div class="section-title"><span class="dot"></span>Estándares de Aprendizaje (% de estudiantes)</div>
+  </div>
+  <div class="legend-strip">
+    <div class="leg-item"><div class="leg-dot" style="background:#27ae60"></div>Adecuado</div>
+    <div class="leg-item"><div class="leg-dot" style="background:#f39c12"></div>Elemental</div>
+    <div class="leg-item"><div class="leg-dot" style="background:#e74c3c"></div>Insuficiente</div>
+  </div>
+  <div class="stacked-grid">${cards}</div>`;
+}
+
+// ─── CHART INIT ────────────────────────────────────────────────────
+function initCharts(est) {
+  // SIMCE bar charts
+  const niveles = [
+    {key:'4B', slepLen: SLEP.PROM_4B_LEN, slepMat: SLEP.PROM_4B_MAT},
+    {key:'8B', slepLen: SLEP.PROM_8B_LEN, slepMat: SLEP.PROM_8B_MAT},
+    {key:'2M', slepLen: SLEP.PROM_2M_LEN, slepMat: SLEP.PROM_2M_MAT}
+  ];
+  niveles.forEach(n => {
+    const canvas = document.getElementById(`simce_${n.key}`);
+    if (!canvas) return;
+    const lenVal = est.simce[n.key+'_LEN'];
+    const matVal = est.simce[n.key+'_MAT'];
+    const labels = ['Lenguaje', 'Matemática'];
+    chartsRegistry[`simce_${n.key}`] = new Chart(canvas, {
+      type: 'bar',
+      data: {
+        labels,
+        datasets: [
+          { label: 'Establecimiento', data: [lenVal, matVal],
+            backgroundColor: ['#2563eb','#7c3aed'],
+            borderRadius: 5, borderSkipped: false },
+          { label: 'Promedio SLEP', data: [n.slepLen, n.slepMat],
+            backgroundColor: ['#93c5fd','#c4b5fd'],
+            borderRadius: 5, borderSkipped: false }
+        ]
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        plugins: { legend: { display: false },
+          tooltip: { callbacks: { label: ctx => ` ${ctx.dataset.label}: ${ctx.raw ?? 'Sin datos'}` }}},
+        scales: {
+          y: { beginAtZero: false, min: 150, max: 380,
+            ticks: { font: { size: 10 } }, grid: { color: '#f0f0f0' } },
+          x: { ticks: { font: { size: 10 } }, grid: { display: false } }
+        }
+      }
+    });
+  });
+
+  // Stacked bar charts for estándares
+  ['4B','8B','2M'].forEach(nk => {
+    ['LEN','MAT'].forEach(ak => {
+      const canvas = document.getElementById(`est_${nk}_${ak}`);
+      if (!canvas) return;
+      const ad = est.estandares[`ADECUADO_${nk}_${ak}`] ?? 0;
+      const el = est.estandares[`ELEMENTAL_${nk}_${ak}`] ?? 0;
+      const ins = est.estandares[`INSUFICIENTE_${nk}_${ak}`] ?? 0;
+      const total = ad + el + ins;
+      const normalize = v => total > 0 ? +((v/total)*100).toFixed(1) : 0;
+      chartsRegistry[`est_${nk}_${ak}`] = new Chart(canvas, {
+        type: 'bar',
+        data: {
+          labels: ['Estándares'],
+          datasets: [
+            { label: 'Adecuado', data: [normalize(ad)], backgroundColor: '#27ae60', borderRadius: 0 },
+            { label: 'Elemental', data: [normalize(el)], backgroundColor: '#f39c12' },
+            { label: 'Insuficiente', data: [normalize(ins)], backgroundColor: '#e74c3c', borderRadius: 0 }
+          ]
+        },
+        options: {
+          indexAxis: 'y', responsive: true, maintainAspectRatio: false,
+          plugins: {
+            legend: { display: false },
+            tooltip: { callbacks: { label: ctx => ` ${ctx.dataset.label}: ${ctx.raw}%` }}
+          },
+          scales: {
+            x: { stacked: true, min: 0, max: 100,
+              ticks: { callback: v => v+'%', font: { size: 10 } },
+              grid: { color: '#f0f0f0' } },
+            y: { stacked: true, display: false }
+          }
+        }
+      });
+    });
+  });
+}
+
+// ─── PDF EXPORT (canvas-based, charts included) ────────────────────
+async function downloadPDF() {
+  if (!currentEstab) return;
+  const btn = document.getElementById('btn-pdf');
+  btn.disabled = true;
+  btn.textContent = '⏳ Generando PDF…';
+
+  // Ocultar barras comparativas del SLEP temporalmente
+  const nivelesKeys = ['4B', '8B', '2M'];
+  nivelesKeys.forEach(key => {
+    const chart = chartsRegistry[`simce_${key}`];
+    if (chart) {
+      chart.data.datasets[1].hidden = true; // Oculta dataset del SLEP
+      chart.update('none'); // Update síncrono sin animación
+    }
+  });
+
+  const { jsPDF } = window.jspdf;
+  const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+
+  const pageW = 210; const pageH = 297;
+  const margin = 12;
+  let y = margin;
+
+  // Colors
+  const navy = [15, 38, 69];
+  const teal = [26, 122, 110];
+  const gold = [200, 146, 42];
+
+  function addText(text, x, yPos, size, color=[50,50,50], style='normal') {
+    pdf.setFontSize(size); pdf.setTextColor(...color); pdf.setFont('helvetica', style);
+    pdf.text(text, x, yPos);
+  }
+
+  function hrLine(yPos, color=[220,220,220]) {
+    pdf.setDrawColor(...color); pdf.setLineWidth(0.3);
+    pdf.line(margin, yPos, pageW - margin, yPos);
+  }
+
+  // ── HEADER ──
+  pdf.setFillColor(...navy);
+  pdf.rect(0, 0, pageW, 32, 'F');
+  addText('SIMCE 2025 — Resultados', margin, 13, 14, [255,255,255], 'bold');
+  addText('Resultados Preliminares por Establecimiento', margin, 20, 9, [148,163,184]);
+  pdf.setFillColor(...gold);
+  pdf.roundedRect(pageW - margin - 44, 6, 44, 7, 2, 2, 'F');
+  addText('RESULTADOS PRELIMINARES', pageW - margin - 42, 11, 6, [255,255,255], 'bold');
+  y = 38;
+
+  // ── ESTABLISHMENT NAME ──
+  pdf.setFillColor(248, 250, 252);
+  pdf.rect(margin, y, pageW - 2*margin, 16, 'F');
+  pdf.setDrawColor(...teal); pdf.setLineWidth(0.8);
+  pdf.line(margin, y, margin, y+16);
+  addText(currentEstab.nombre, margin+4, y+7, 11, navy, 'bold');
+  addText(`${currentEstab.comuna}   ·   RBD ${currentEstab.rbd}`, margin+4, y+13, 8, [100,116,139]);
+  y += 22;
+
+  // ── KPI TABLE (Solo establecimiento) ──
+  addText('PUNTAJES PROMEDIO SIMCE 2025', margin, y, 8, teal, 'bold');
+  y += 3; hrLine(y, [200,220,215]); y += 4;
+
+  const simcePairs = [
+    {label:'4° Básico', lenKey:'4B_LEN', matKey:'4B_MAT'},
+    {label:'8° Básico', lenKey:'8B_LEN', matKey:'8B_MAT'},
+    {label:'2° Medio', lenKey:'2M_LEN', matKey:'2M_MAT'}
+  ];
+
+  const colW = (pageW - 2*margin) / 3;
+  simcePairs.forEach((p, i) => {
+    const x = margin + i * colW;
+    pdf.setFillColor(255,255,255); pdf.setDrawColor(...teal); pdf.setLineWidth(0.3);
+    pdf.roundedRect(x, y, colW - 2, 20, 2, 2, 'FD'); // Box height reduced from 22 to 20
+    addText(p.label, x+4, y+5.5, 7, teal, 'bold');
+
+    const lenV = currentEstab.simce[p.lenKey];
+    const matV = currentEstab.simce[p.matKey];
+
+    if (lenV !== null) {
+      addText(`Lenguaje: ${lenV}`, x+4, y+11, 8, navy);
+    } else {
+      addText('Lenguaje: Sin datos', x+4, y+11, 8, [180,180,180]);
+    }
+    if (matV !== null) {
+      addText(`Matemática: ${matV}`, x+4, y+16, 8, navy);
+    } else {
+      addText('Matemática: Sin datos', x+4, y+16, 8, [180,180,180]);
+    }
+  });
+  y += 26;
+
+  // ── CAPTURE CHARTS VIA html2canvas ──
+  const niveles = [
+    {key:'4B', label:'4° Básico'},
+    {key:'8B', label:'8° Básico'},
+    {key:'2M', label:'2° Medio'}
+  ];
+
+  // Puntajes charts
+  addText('GRÁFICOS DE PUNTAJES POR NIVEL', margin, y, 8, teal, 'bold');
+  y += 3; hrLine(y, [200,220,215]); y += 4;
+
+  for (const n of niveles) {
+    const canvas = document.getElementById(`simce_${n.key}`);
+    if (!canvas) continue;
+    const imgData = canvas.toDataURL('image/png', 0.95);
+    const chartW = 56; const chartH = 36;
+    const xi = margin + niveles.indexOf(n) * (chartW + 3);
+    pdf.addImage(imgData, 'PNG', xi, y, chartW, chartH);
+    addText(n.label, xi + chartW/2, y + chartH + 4, 7, navy, 'bold');
+    pdf.setFont('helvetica','normal');
+  }
+  y += 48;
+
+  // Estándares
+  addText('ESTÁNDARES DE APRENDIZAJE (% estudiantes por nivel)', margin, y, 8, teal, 'bold');
+  y += 3; hrLine(y, [200,220,215]); y += 4;
+
+  const asigs = ['LEN','MAT'];
+  for (const n of niveles) {
+    for (const ak of asigs) {
+      const canvas = document.getElementById(`est_${n.key}_${ak}`);
+      if (!canvas) continue;
+      const imgData = canvas.toDataURL('image/png', 0.95);
+      const ci = niveles.indexOf(n) * 2 + asigs.indexOf(ak);
+      const row = Math.floor(ci / 3);
+      const col = ci % 3;
+      const cw = 59; const ch = 20;
+      const xc = margin + col * (cw + 2);
+      const yc = y + row * (ch + 10);
+      pdf.addImage(imgData, 'PNG', xc, yc, cw, ch);
+      addText(`${n.label} – ${ak === 'LEN' ? 'Lenguaje' : 'Matemática'}`, xc + 2, yc + ch + 4, 6, navy);
+    }
+  }
+  
+  // Legend for estándares
+  const legendY = y + 2 * 30 + 4;
+  const dots = [{c:[39,174,96],l:'Adecuado'},{c:[243,156,18],l:'Elemental'},{c:[231,76,60],l:'Insuficiente'}];
+  let lx = margin;
+  dots.forEach(d => {
+    pdf.setFillColor(...d.c);
+    pdf.roundedRect(lx, legendY, 4, 4, 1, 1, 'F');
+    addText(d.l, lx + 5, legendY + 3.5, 6, [80,80,80]);
+    lx += 28;
+  });
+  y = legendY + 8;
+
+  // Footer
+  if (y > pageH - 12) { pdf.addPage(); y = margin; }
+  pdf.setFillColor(...navy);
+  pdf.rect(0, pageH - 10, pageW, 10, 'F');
+  addText(`SIMCE 2025 Preliminar · Generado: ${new Date().toLocaleString('es-CL')}`,
+    pageW/2, pageH - 4, 6, [148,163,184], 'normal');
+  pdf.setTextColor(148,163,184);
+  pdf.text('', pageW/2, pageH - 4, {align:'center'});
+
+  pdf.save(`SIMCE2025_${currentEstab.rbd}_${currentEstab.nombre.replace(/[^a-zA-Z0-9]/g,'_').substring(0,30)}.pdf`);
+
+  // Restaurar barras comparativas del SLEP en la plataforma web
+  nivelesKeys.forEach(key => {
+    const chart = chartsRegistry[`simce_${key}`];
+    if (chart) {
+      chart.data.datasets[1].hidden = false;
+      chart.update('none');
+    }
+  });
+
+  btn.disabled = false;
+  btn.innerHTML = '📄 Descargar Informe PDF';
+}
+</script>
+</body>
+</html>
