@@ -529,16 +529,19 @@ function renderStandardsCharts(school) {
           data: {
             labels: ['2025'], // Eje X ahora representa el año (Vertical layout)
             datasets: [
+              // 1. INSUFICIENTE (Se dibuja primero, en la base)
               { 
-                label: 'Adecuado', data: [ad || 0], backgroundColor: '#27ae60',
+                label: 'Insuficiente', data: [ins || 0], backgroundColor: '#e74c3c',
                 datalabels: { color: 'white', font: { weight: 'bold', size: 12 }, formatter: v => v >= 5 ? v + '%' : '' }
               },
+              // 2. ELEMENTAL (Se dibuja al medio)
               { 
                 label: 'Elemental', data: [el || 0], backgroundColor: '#f39c12',
                 datalabels: { color: 'white', font: { weight: 'bold', size: 12 }, formatter: v => v >= 5 ? v + '%' : '' }
               },
+              // 3. ADECUADO (Se dibuja al final, en la cima)
               { 
-                label: 'Insuficiente', data: [ins || 0], backgroundColor: '#e74c3c',
+                label: 'Adecuado', data: [ad || 0], backgroundColor: '#27ae60',
                 datalabels: { color: 'white', font: { weight: 'bold', size: 12 }, formatter: v => v >= 5 ? v + '%' : '' }
               }
             ]
