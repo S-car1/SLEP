@@ -163,8 +163,11 @@
     padding: 12px 16px; background: white; border: 1px solid var(--border);
     border-radius: 8px; margin-bottom: 24px; flex-wrap: wrap; box-shadow: 0 1px 3px rgba(0,0,0,0.05);
   }
-  .leg-item { display: flex; align-items: center; gap: 6px; font-size: 0.85rem; color: var(--slate); font-weight: 500; }
+  .leg-item { display: flex; align-items: center; gap: 6px; font-size: 0.85rem; color: var(--slate); font-weight: 500; cursor: pointer; user-select: none; transition: opacity 0.15s; }
+  .leg-item:hover { opacity: 0.75; }
+  .leg-item-off { opacity: 0.35; text-decoration: line-through; }
   .leg-dot { width: 14px; height: 14px; border-radius: 4px; }
+  .legend-hint { font-size: 0.68rem; color: #a0aec0; font-style: italic; }
 
   @media (max-width: 768px) {
     .charts-grid { grid-template-columns: 1fr; }
@@ -227,6 +230,7 @@
     <div class="legend-strip" id="legend-evolucion" style="display:none;">
       <div class="leg-item"><div class="leg-dot" style="background:#2563eb"></div>Lenguaje</div>
       <div class="leg-item"><div class="leg-dot" style="background:#dc2626"></div>Matemática</div>
+      <span class="legend-hint">Click: mostrar/ocultar &nbsp;|&nbsp; doble click: mostrar todo</span>
     </div>
 
     <div class="charts-grid" id="charts-container">
@@ -236,6 +240,7 @@
       <div class="leg-item"><div class="leg-dot" style="background:#27ae60"></div>Adecuado</div>
       <div class="leg-item"><div class="leg-dot" style="background:#f39c12"></div>Elemental</div>
       <div class="leg-item"><div class="leg-dot" style="background:#e74c3c"></div>Insuficiente</div>
+      <span class="legend-hint">Click: mostrar/ocultar &nbsp;|&nbsp; doble click: mostrar todo</span>
     </div>
 
     <div class="charts-grid" id="standards-container">
@@ -347,21 +352,34 @@ const SCHOOLS_DATA = [
 let currentSchool = null;
 let chartsRegistry = {};
 
+// ─── UTILIDADES ──────────────────────────────────────────────────────
+function debounce(fn, wait) {
+  let t;
+  return function(...args) {
+    clearTimeout(t);
+    t = setTimeout(() => fn.apply(this, args), wait);
+  };
+}
+
 // ─── BUSCADOR ──────────────────────────────────────────────────────
 const searchInput = document.getElementById('search-input');
 const searchResults = document.getElementById('search-results');
 
-searchInput.addEventListener('input', () => {
+function runSearch() {
   const q = searchInput.value.trim().toLowerCase();
   if (!q) { searchResults.style.display = 'none'; return; }
-  
+
   const matches = SCHOOLS_DATA.filter(e =>
-    (e.NOM_RBD && e.NOM_RBD.toLowerCase().includes(q)) || 
+    (e.NOM_RBD && e.NOM_RBD.toLowerCase().includes(q)) ||
     (e.rbd && String(e.rbd).includes(q))
   ).slice(0, 10);
-  
-  if (!matches.length) { searchResults.style.display = 'none'; return; }
-  
+
+  if (!matches.length) {
+    searchResults.innerHTML = `<div class="result-item" style="cursor:default;"><div class="result-meta">Sin resultados</div></div>`;
+    searchResults.style.display = 'block';
+    return;
+  }
+
   searchResults.innerHTML = matches.map(e => `
     <div class="result-item" onclick="loadSchool(${e.rbd})">
       <div>
@@ -371,11 +389,59 @@ searchInput.addEventListener('input', () => {
       <div class="result-meta">RBD ${e.rbd}</div>
     </div>`).join('');
   searchResults.style.display = 'block';
-});
+}
+
+searchInput.addEventListener('input', debounce(runSearch, 150));
 
 document.addEventListener('click', e => {
   if (!e.target.closest('.search-wrapper')) searchResults.style.display = 'none';
 });
+
+// ─── LEYENDAS CLICKEABLES (toggle por serie + reset "mostrar todo") ────
+function wireLegendStrip(stripId, chartPrefix) {
+  const strip = document.getElementById(stripId);
+  if (!strip) return;
+  const items = strip.querySelectorAll('.leg-item');
+
+  function chartsInGroup() {
+    return Object.keys(chartsRegistry)
+      .filter(k => k.startsWith(chartPrefix))
+      .map(k => chartsRegistry[k]);
+  }
+
+  items.forEach(item => {
+    const label = item.textContent.trim();
+    item.addEventListener('click', () => {
+      const charts = chartsInGroup();
+      if (!charts.length) return;
+      // Usa el primer chart del grupo como referencia de visibilidad actual
+      const ref = charts[0];
+      const idx = ref.data.datasets.findIndex(d => d.label === label);
+      if (idx === -1) return;
+      const makeVisible = !ref.isDatasetVisible(idx);
+      charts.forEach(chart => {
+        const i = chart.data.datasets.findIndex(d => d.label === label);
+        if (i === -1) return;
+        chart.setDatasetVisibility(i, makeVisible);
+        chart.update();
+      });
+      item.classList.toggle('leg-item-off', !makeVisible);
+    });
+
+    item.addEventListener('dblclick', e => {
+      e.preventDefault();
+      const charts = chartsInGroup();
+      charts.forEach(chart => {
+        chart.data.datasets.forEach((d, i) => chart.setDatasetVisibility(i, true));
+        chart.update();
+      });
+      items.forEach(li => li.classList.remove('leg-item-off'));
+    });
+  });
+}
+
+wireLegendStrip('legend-evolucion', 'evo_');
+wireLegendStrip('legend-estandares', 'std_');
 
 // ─── CARGAR ESTABLECIMIENTO ────────────────────────────────────────
 function loadSchool(rbd) {
@@ -499,7 +565,19 @@ function renderEvolutionCharts(school) {
         options: {
           responsive: true, maintainAspectRatio: false,
           layout: { padding: { top: 20, bottom: 10, right: 15, left: 15 } },
-          plugins: { legend: { display: false } },
+          plugins: {
+            legend: { display: false },
+            tooltip: {
+              enabled: true,
+              callbacks: {
+                label: ctx => {
+                  const val = ctx.parsed.y;
+                  if (val === null || val === undefined) return `${ctx.dataset.label}: sin dato`;
+                  return `${ctx.dataset.label}: ${val.toLocaleString('es-CL', { maximumFractionDigits: 1 })} pts`;
+                }
+              }
+            }
+          },
           scales: {
             y: { min: 150, max: 360, grid: { color: '#f0f0f0' } },
             x: { grid: { display: false } }
@@ -567,7 +645,18 @@ function renderStandardsCharts(school) {
           options: {
             indexAxis: 'x', // Esto asegura que las barras crezcan hacia arriba
             responsive: true, maintainAspectRatio: false,
-            plugins: { legend: { display: false } },
+            plugins: {
+              legend: { display: false },
+              tooltip: {
+                enabled: true,
+                callbacks: {
+                  label: ctx => {
+                    const val = ctx.parsed.y;
+                    return `${ctx.dataset.label}: ${val.toLocaleString('es-CL', { maximumFractionDigits: 1 })}%`;
+                  }
+                }
+              }
+            },
             scales: {
               x: { stacked: true, grid: { display: false } },
               y: { stacked: true, min: 0, max: 100, display: false } // Oculto el eje Y para que se vea más limpio con los números encima
