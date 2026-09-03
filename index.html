@@ -391,10 +391,20 @@ function runSearch() {
   searchResults.style.display = 'block';
 }
 
-searchInput.addEventListener('input', debounce(runSearch, 150));
+let searchTimer;
+searchInput.addEventListener('input', () => {
+  clearTimeout(searchTimer);
+  searchTimer = setTimeout(runSearch, 150);
+});
 
 document.addEventListener('click', e => {
-  if (!e.target.closest('.search-wrapper')) searchResults.style.display = 'none';
+  if (!e.target.closest('.search-wrapper')) {
+    // Cancela una busqueda debounced pendiente: sin esto, un clic afuera oculta
+    // el dropdown de inmediato pero el runSearch() que quedo en el aire lo
+    // reabria solo ~150ms despues, ignorando que el usuario ya hizo clic afuera.
+    clearTimeout(searchTimer);
+    searchResults.style.display = 'none';
+  }
 });
 
 // ─── LEYENDAS CLICKEABLES (toggle por serie + reset "mostrar todo") ────
